@@ -1,0 +1,8 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- C16 · TabBar -->
+    <string name="museum_tab_home">홈</string>
+    <string name="museum_tab_search">검색</string>
+    <string name="museum_tab_library">보관함</string>
+    <string name="museum_tab_profile">내정보</string>
+</resources>
