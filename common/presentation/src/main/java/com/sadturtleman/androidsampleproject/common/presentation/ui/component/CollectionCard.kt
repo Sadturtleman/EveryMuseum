@@ -44,6 +44,7 @@ fun CollectionCard(
     nationalityName2: String? = null,
     onClick: (() -> Unit)? = null,
     onSaveClick: (() -> Unit)? = null,
+    saved: Boolean = false,
     image: (@Composable BoxScope.() -> Unit)? = null,
 ) {
     val spacing = MuseumTheme.spacing
@@ -66,13 +67,15 @@ fun CollectionCard(
             if (onSaveClick != null) {
                 MuseumIconButton(
                     icon = MuseumIcons.Bookmark,
-                    contentDescription = "보관함에 저장",
+                    contentDescription = if (saved) "보관함에서 빼기" else "보관함에 저장",
                     onClick = onSaveClick,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
                         .padding(spacing.sm),
                     style = MuseumIconButtonStyle.Overlay,
                     buttonSize = MuseumTheme.size.cardOverlayButton,
+                    // 저장되면 브랜드색으로 채운다(아이콘이 한 종류라 색으로만 구분한다).
+                    container = MuseumTheme.colors.bgBrand.takeIf { saved },
                 )
             }
         }

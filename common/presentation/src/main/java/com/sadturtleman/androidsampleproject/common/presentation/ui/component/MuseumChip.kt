@@ -49,7 +49,7 @@ fun MuseumChip(
                 selected = selected,
                 enabled = enabled,
                 role = Role.Tab,
-                onClick = onClick,
+                onClick = rememberDebouncedClick(onClick = onClick),
             )
             .background(background, shape)
             .border(1.dp, border, shape)

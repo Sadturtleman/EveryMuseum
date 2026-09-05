@@ -2,13 +2,14 @@ package com.sadturtleman.androidsampleproject.search.presentation.search
 
 import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Immutable
+import com.sadturtleman.androidsampleproject.common.presentation.mvi.UiState
 
 /**
  * 검색 화면 상태 (Figma: 최종 → 02 · 검색).
  *
  * 코드 둘러보기 항목은 `GET /openapi/code?parentCode=PS01 / PS08 / GL05 / PS15` 로 채운다.
  */
-sealed interface SearchUiState {
+sealed interface SearchUiState : UiState {
 
     /** 최근 검색어 · 색인어 · 코드 목록을 불러오는 중 */
     data object Loading : SearchUiState

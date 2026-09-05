@@ -36,6 +36,9 @@ android {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
+        // MviViewModel 이 explicit backing field(`val uiState: StateFlow<S> field = ...`) 를 쓴다.
+        // 선언 모듈과 소비 모듈 양쪽에 같은 플래그가 있어야 메타데이터를 읽을 수 있다.
+        freeCompilerArgs.add("-Xexplicit-backing-fields")
     }
 }
 
@@ -43,11 +46,14 @@ dependencies {
     implementation(project(":search:domain"))
     implementation(project(":search:entity"))
     implementation(project(":common:presentation"))
-
-    // 상세로 이동하기 위해 대상 Page / typed Args 정의만 참조한다(화면 구현은 참조하지 않음).
     implementation(project(":detail:domain"))
 
+    // 상세로 이동하기 위해 대상 Page / typed Args 정의만 참조한다(화면 구현은 참조하지 않음).
+
     // Hilt
+    // 검색 결과 그리드 페이지네이션
+    implementation(libs.androidx.paging.compose)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
 }

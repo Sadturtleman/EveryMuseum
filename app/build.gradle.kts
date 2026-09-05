@@ -3,6 +3,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlinx.serialization)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
@@ -17,8 +18,8 @@ android {
         applicationId = "com.sadturtleman.androidsampleproject"
         minSdk = libs.versions.minSdk.get().toInt()
         targetSdk = libs.versions.targetSdk.get().toInt()
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = libs.versions.versionCode.get().toInt()
+        versionName = libs.versions.versionName.get()
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -44,6 +45,7 @@ android {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
+        freeCompilerArgs.add("-Xexplicit-backing-fields")
     }
 }
 
@@ -51,12 +53,14 @@ dependencies {
     implementation(project(":common:presentation"))
     implementation(project(":common:domain"))
     implementation(project(":common:data"))
+    implementation(project(":common:network"))
     implementation(project(":common:entity"))
+    implementation(project(":common:di"))
 
-    implementation(project(":main:presentation"))
-    implementation(project(":main:domain"))
-    implementation(project(":main:data"))
-    implementation(project(":main:entity"))
+    implementation(project(":home:presentation"))
+    implementation(project(":home:domain"))
+    implementation(project(":home:data"))
+    implementation(project(":home:entity"))
 
     implementation(project(":search:presentation"))
     implementation(project(":search:domain"))
@@ -72,6 +76,15 @@ dependencies {
     implementation(project(":store:domain"))
     implementation(project(":store:data"))
     implementation(project(":store:entity"))
+
+    implementation(libs.androidx.activity.compose)
+
+    // Navigation 3. 백스택 · 라우팅 테이블이 이 모듈에 있다.
+    implementation(libs.androidx.navigation3.runtime)
+    implementation(libs.androidx.navigation3.ui)
+    implementation(libs.androidx.lifecycle.viewmodel.navigation3)
+    // GenericNavKey 백스택 직렬화용
+    implementation(libs.kotlinx.serialization.json)
 
     // Hilt
     implementation(libs.hilt.android)

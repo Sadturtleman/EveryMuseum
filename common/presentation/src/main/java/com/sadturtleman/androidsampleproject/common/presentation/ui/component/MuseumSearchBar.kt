@@ -64,7 +64,7 @@ fun MuseumSearchBar(
             )
             .then(
                 if (onClick != null) {
-                    Modifier.clickable(enabled = enabled, role = Role.Button, onClick = onClick)
+                    Modifier.debouncedClickable(enabled = enabled, onClick = onClick)
                 } else {
                     Modifier
                 },

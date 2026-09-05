@@ -42,6 +42,9 @@ enum class MuseumIconButtonStyle {
  *
  * @param tint 아이콘 색을 직접 지정한다. null 이면 [style] 에서 유도한다.
  *  히어로 이미지 위 투명 앱바처럼 배경 없이 색만 바꿔야 할 때 쓴다.
+ * @param container 배경색을 직접 지정한다. null 이면 [style] 에서 유도한다.
+ *  저장된 북마크처럼 "켜짐" 을 색으로 알려야 할 때 쓴다 — Overlay 의 기본 배경이
+ *  라이트 · 다크 양쪽에서 어두운 스크림이라 아이콘 색만 바꾸면 대비가 나오지 않는다.
  */
 @Composable
 fun MuseumIconButton(
@@ -53,10 +56,11 @@ fun MuseumIconButton(
     enabled: Boolean = true,
     buttonSize: Dp = MuseumTheme.size.touchMin,
     tint: Color? = null,
+    container: Color? = null,
 ) {
     val colors = MuseumTheme.colors
     val shape = MuseumTheme.shapes.full
-    val container = when (style) {
+    val resolvedContainer = container ?: when (style) {
         MuseumIconButtonStyle.Plain -> Color.Transparent
         MuseumIconButtonStyle.Filled -> colors.bgSurfaceSunken
         MuseumIconButtonStyle.Overlay -> colors.bgScrim
@@ -71,8 +75,8 @@ fun MuseumIconButton(
             .alpha(if (enabled) 1f else 0.4f)
             .size(buttonSize)
             .clip(shape)
-            .background(container)
-            .clickable(
+            .background(resolvedContainer)
+            .debouncedClickable(
                 enabled = enabled,
                 role = Role.Button,
                 onClick = onClick,

@@ -8,7 +8,7 @@ import com.sadturtleman.androidsampleproject.common.domain.navigation.Page
  *
  * - 호출부(다른 feature)는 `navigationHelper.navigateTo(DetailPage.Args(id))` 로 타입 안전하게 이동한다.
  *   이때 참조하는 것은 :detail:domain 뿐이라 화면 구현과의 컴파일 의존이 생기지 않는다.
- * - 호스트(:main:presentation 의 AppRouteRegistry)는 [Args.from] 으로 String 맵을 다시 typed Args 로 복원한다.
+ * - 호스트(:app 의 AppRouteRegistry)는 [Args.from] 으로 String 맵을 다시 typed Args 로 복원한다.
  * - deep-link 의 query parameter 도 같은 String 맵으로 들어오므로 두 경로가 하나로 합쳐진다.
  *
  * 인자는 조회 키인 [Args.id] 하나로 유지한다. 표시에 필요한 나머지 값은 화면이 id 로 다시 조회하며,

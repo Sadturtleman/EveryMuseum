@@ -14,7 +14,7 @@ import kotlinx.coroutines.flow.Flow
  * - [navigateToBack] — 하드웨어 백 키와 동일하게 한 단계 뒤로 이동.
  *
  * feature 모듈은 서로를 모른 채 이 인터페이스에만 의존한다.
- * 실제 백스택 조작은 호스트인 :main:presentation 의 AppNavHost 한 곳에서만 일어나므로
+ * 실제 백스택 조작은 호스트인 :app 의 AppNavHost 한 곳에서만 일어나므로
  * feature -> feature 간 컴파일 의존이 생기지 않는다.
  */
 interface NavigationHelper {

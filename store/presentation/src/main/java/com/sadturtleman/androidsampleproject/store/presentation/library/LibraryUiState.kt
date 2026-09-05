@@ -1,5 +1,6 @@
 package com.sadturtleman.androidsampleproject.store.presentation.library
 
+import com.sadturtleman.androidsampleproject.common.presentation.mvi.UiState
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.ArtifactUiModel
 
 /**
@@ -7,7 +8,7 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.model.Artifa
  *
  * 로컬에 저장한 id 목록으로 `GET /openapi/relic/list` 를 조회해 채운다.
  */
-sealed interface LibraryUiState {
+sealed interface LibraryUiState : UiState {
 
     /** 저장 목록 조회 중 */
     data object Loading : LibraryUiState

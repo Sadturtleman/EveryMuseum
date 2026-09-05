@@ -47,7 +47,7 @@ fun MuseumFilterOptionRow(
                 selected = selected,
                 enabled = enabled,
                 role = Role.RadioButton,
-                onClick = onClick,
+                onClick = rememberDebouncedClick(onClick = onClick),
             )
             .padding(MuseumTheme.spacing.lg),
         horizontalArrangement = Arrangement.SpaceBetween,

@@ -1,7 +1,6 @@
 package com.sadturtleman.androidsampleproject.search.presentation.search
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -25,6 +24,7 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.component.Mu
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumIcon
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumIcons
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumSectionHeader
+import com.sadturtleman.androidsampleproject.common.presentation.ui.component.debouncedClickable
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
 
 /**
@@ -34,13 +34,9 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.Museum
  * 비어 있는 블록은 그리지 않는다.
  */
 @Composable
-fun SearchContent(
+internal fun SearchContent(
     state: SearchUiState.Success,
-    onRecentQueryClick: (String) -> Unit,
-    onRecentQueryRemove: (String) -> Unit,
-    onRecentQueryClearAll: () -> Unit,
-    onIndexWordClick: (String) -> Unit,
-    onCodeCategoryClick: (CodeCategoryUiModel) -> Unit,
+    onIntent: (SearchIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -64,7 +60,9 @@ fun SearchContent(
                     )
                     Text(
                         text = "전체 삭제",
-                        modifier = Modifier.clickable(onClick = onRecentQueryClearAll),
+                        modifier = Modifier.debouncedClickable {
+                            onIntent(SearchIntent.ClearRecentQueries)
+                        },
                         style = MuseumTheme.typography.labelM,
                         color = MuseumTheme.colors.textTertiary,
                     )
@@ -75,8 +73,8 @@ fun SearchContent(
                 val query = state.recentQueries[index]
                 RecentQueryRow(
                     query = query,
-                    onClick = { onRecentQueryClick(query) },
-                    onRemove = { onRecentQueryRemove(query) },
+                    onClick = { onIntent(SearchIntent.ClickRecentQuery(query)) },
+                    onRemove = { onIntent(SearchIntent.RemoveRecentQuery(query)) },
                     modifier = Modifier.padding(top = if (index == 0) BLOCK_GAP else 0.dp),
                 )
             }
@@ -101,7 +99,7 @@ fun SearchContent(
                             MuseumChip(
                                 label = word,
                                 selected = false,
-                                onClick = { onIndexWordClick(word) },
+                                onClick = { onIntent(SearchIntent.ClickIndexWord(word)) },
                             )
                         }
                     }
@@ -120,7 +118,9 @@ fun SearchContent(
             items(state.codeCategories.size, key = { state.codeCategories[it].parentCode }) { index ->
                 CodeCategoryRow(
                     category = state.codeCategories[index],
-                    onClick = { onCodeCategoryClick(state.codeCategories[index]) },
+                    onClick = {
+                        onIntent(SearchIntent.ClickCodeCategory(state.codeCategories[index]))
+                    },
                     showDivider = index != state.codeCategories.lastIndex,
                 )
             }
@@ -139,7 +139,7 @@ private fun RecentQueryRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .debouncedClickable(onClick = onClick)
             .padding(vertical = MuseumTheme.spacing.sm),
         horizontalArrangement = Arrangement.spacedBy(ROW_GAP),
         verticalAlignment = Alignment.CenterVertically,
@@ -161,7 +161,7 @@ private fun RecentQueryRow(
         MuseumIcon(
             id = MuseumIcons.Close,
             contentDescription = "$query 검색 기록 삭제",
-            modifier = Modifier.clickable(onClick = onRemove),
+            modifier = Modifier.debouncedClickable(onClick = onRemove),
             tint = MuseumTheme.colors.iconSecondary,
             size = MuseumTheme.size.iconXs,
         )
@@ -181,7 +181,7 @@ private fun CodeCategoryRow(
     Row(
         modifier = modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick)
+            .debouncedClickable(onClick = onClick)
             .drawBehind {
                 if (!showDivider) return@drawBehind
                 val stroke = 1.dp.toPx()

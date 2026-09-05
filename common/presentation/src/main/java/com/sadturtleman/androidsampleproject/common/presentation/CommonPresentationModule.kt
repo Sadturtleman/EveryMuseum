@@ -1,6 +1,8 @@
 package com.sadturtleman.androidsampleproject.common.presentation
 
+import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
 import com.sadturtleman.androidsampleproject.common.domain.helper.NavigationHelper
+import com.sadturtleman.androidsampleproject.common.presentation.helper.MessageHelperImpl
 import com.sadturtleman.androidsampleproject.common.presentation.helper.NavigationHelperImpl
 import dagger.Module
 import dagger.Provides
@@ -18,4 +20,9 @@ object CommonPresentationModule {
     @Provides
     @Singleton
     fun provideNavigationHelper(): NavigationHelper = NavigationHelperImpl()
+
+    /** 메시지 채널도 같은 이유로 하나만 둔다(호스트가 구독하지 않는 채널로 흘러가면 유실된다). */
+    @Provides
+    @Singleton
+    fun provideMessageHelper(): MessageHelper = MessageHelperImpl()
 }

@@ -117,6 +117,7 @@ fun MuseumOverlayTopAppBar(
     onShareClick: () -> Unit,
     onBookmarkClick: () -> Unit,
     modifier: Modifier = Modifier,
+    saved: Boolean = false,
 ) {
     val tint = MuseumTheme.colors.iconInverse
     MuseumTopAppBarLayout(
@@ -139,9 +140,11 @@ fun MuseumOverlayTopAppBar(
             )
             MuseumIconButton(
                 icon = MuseumIcons.Bookmark,
-                contentDescription = "보관함에 저장",
+                contentDescription = if (saved) "보관함에서 빼기" else "보관함에 저장",
                 onClick = onBookmarkClick,
                 tint = tint,
+                // 사진 위라 아이콘 색만으로는 잘 안 읽혀, 저장되면 브랜드색으로 채운다.
+                container = MuseumTheme.colors.bgBrand.takeIf { saved },
             )
         },
     )

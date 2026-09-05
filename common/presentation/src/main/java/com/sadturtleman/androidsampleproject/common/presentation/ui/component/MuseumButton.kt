@@ -111,7 +111,7 @@ fun MuseumButton(
                 indication = LocalIndication.current,
                 enabled = enabled,
                 role = Role.Button,
-                onClick = onClick,
+                onClick = rememberDebouncedClick(onClick = onClick),
             )
             .padding(horizontal = horizontalPadding, vertical = verticalPadding),
         horizontalArrangement = Arrangement.spacedBy(spacing.sm, Alignment.CenterHorizontally),
