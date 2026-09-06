@@ -1,7 +1,7 @@
-package com.sadturtleman.androidsampleproject.home.domain
+package com.sadturtleman.androidsampleproject.home.navigation
 
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavRoute
-import com.sadturtleman.androidsampleproject.common.domain.navigation.Page
+import com.sadturtleman.androidsampleproject.common.navigation.NavRoute
+import com.sadturtleman.androidsampleproject.common.navigation.Page
 
 /**
  * 앱의 시작 페이지이자 탭 루트 (Figma: 최종 → 01 · 홈).

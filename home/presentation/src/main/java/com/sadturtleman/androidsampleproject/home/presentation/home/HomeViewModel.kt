@@ -3,7 +3,7 @@ package com.sadturtleman.androidsampleproject.home.presentation.home
 import androidx.lifecycle.viewModelScope
 import com.sadturtleman.androidsampleproject.common.domain.code.GetCodesUseCase
 import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
-import com.sadturtleman.androidsampleproject.common.domain.helper.NavigationHelper
+import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.domain.saved.GetSavedRelicIdsUseCase
 import com.sadturtleman.androidsampleproject.common.domain.saved.ToggleSavedRelicUseCase
 import com.sadturtleman.androidsampleproject.common.entity.relic.RelicPageVO
@@ -13,11 +13,11 @@ import com.sadturtleman.androidsampleproject.common.presentation.mvi.MviViewMode
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.ArtifactUiModel
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.toArtifactUiModel
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.toSavedRelicVO
-import com.sadturtleman.androidsampleproject.detail.domain.DetailPage
+import com.sadturtleman.androidsampleproject.detail.navigation.DetailPage
 import com.sadturtleman.androidsampleproject.home.domain.GetHomeRelicsUseCase
-import com.sadturtleman.androidsampleproject.search.domain.SearchPage
-import com.sadturtleman.androidsampleproject.search.domain.SearchResultPage
-import com.sadturtleman.androidsampleproject.store.domain.StorePage
+import com.sadturtleman.androidsampleproject.search.navigation.SearchPage
+import com.sadturtleman.androidsampleproject.search.navigation.SearchResultPage
+import com.sadturtleman.androidsampleproject.store.navigation.StorePage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.async

@@ -56,23 +56,28 @@ dependencies {
     implementation(project(":common:network"))
     implementation(project(":common:entity"))
     implementation(project(":common:di"))
+    implementation(project(":common:navigation"))
 
     implementation(project(":home:presentation"))
+    implementation(project(":home:navigation"))
     implementation(project(":home:domain"))
     implementation(project(":home:data"))
     implementation(project(":home:entity"))
 
     implementation(project(":search:presentation"))
+    implementation(project(":search:navigation"))
     implementation(project(":search:domain"))
     implementation(project(":search:data"))
     implementation(project(":search:entity"))
 
     implementation(project(":detail:presentation"))
+    implementation(project(":detail:navigation"))
     implementation(project(":detail:domain"))
     implementation(project(":detail:data"))
     implementation(project(":detail:entity"))
 
     implementation(project(":store:presentation"))
+    implementation(project(":store:navigation"))
     implementation(project(":store:domain"))
     implementation(project(":store:data"))
     implementation(project(":store:entity"))

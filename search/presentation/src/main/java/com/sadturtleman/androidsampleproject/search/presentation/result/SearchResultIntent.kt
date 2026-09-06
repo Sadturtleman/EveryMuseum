@@ -5,6 +5,14 @@ import com.sadturtleman.androidsampleproject.common.presentation.mvi.MviIntent
 
 /** 검색 결과 화면에서 올라오는 사용자 입력. */
 sealed interface SearchResultIntent : MviIntent {
+    /**
+     * 라우트 인자 전달. 화면이 진입할 때 한 번 보낸다.
+     *
+     * 생성자로 받으면 assisted injection 과 팩토리가 필요한데,
+     * MVI 에서는 밖에서 들어오는 값도 인텐트로 표현하는 편이 일관되다.
+     */
+    data class Load(val query: String, val filterTabCode: String?) : SearchResultIntent
+
     data object Back : SearchResultIntent
     data class ChangeQuery(val query: String) : SearchResultIntent
 

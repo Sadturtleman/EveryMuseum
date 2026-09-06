@@ -1,4 +1,4 @@
-package com.sadturtleman.androidsampleproject.common.domain.navigation
+package com.sadturtleman.androidsampleproject.common.navigation
 
 /**
  * 단일 네비게이션 플로우에 흘려보내는 신호.

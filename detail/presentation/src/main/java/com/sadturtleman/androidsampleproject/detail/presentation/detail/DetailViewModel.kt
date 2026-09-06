@@ -2,7 +2,7 @@ package com.sadturtleman.androidsampleproject.detail.presentation.detail
 
 import androidx.lifecycle.viewModelScope
 import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
-import com.sadturtleman.androidsampleproject.common.domain.helper.NavigationHelper
+import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.domain.saved.GetSavedRelicIdsUseCase
 import com.sadturtleman.androidsampleproject.common.domain.saved.ToggleSavedRelicUseCase
 import com.sadturtleman.androidsampleproject.common.entity.relic.RelicDetailVO
@@ -12,54 +12,48 @@ import com.sadturtleman.androidsampleproject.common.presentation.mvi.MviViewMode
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.ArtifactType
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.artifactTypeOf
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.toArtifactUiModel
-import com.sadturtleman.androidsampleproject.detail.domain.DetailPage
+import com.sadturtleman.androidsampleproject.detail.navigation.DetailPage
 import com.sadturtleman.androidsampleproject.detail.domain.GetRelicDetailUseCase
-import com.sadturtleman.androidsampleproject.search.domain.SearchResultPage
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
+import com.sadturtleman.androidsampleproject.search.navigation.SearchResultPage
 import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.flow.distinctUntilChanged
 import kotlinx.coroutines.flow.launchIn
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * 소장품 상세 ViewModel (Figma: 최종 → 05 · 소장품 상세).
  *
- * 네비게이션 인자([DetailPage.Args])를 Hilt assisted injection 으로 생성자에서 받는다.
- * (SavedStateHandle 에서 문자열을 다시 파싱하지 않으므로 디코딩 지점이 라우팅 테이블 한 곳으로 모인다.)
+ * 네비게이션 인자는 화면이 [DetailIntent.Load] 로 넣어 준다. 디코딩은 라우팅 표 한 곳에서만 한다.
  *
- * 표시 값은 인자로 넘어온 [DetailPage.Args.id] 로 `GET /openapi/detail?id=` 을 다시 조회한다.
+ * 표시 값은 넘어온 id 로 `GET /openapi/detail?id=` 을 다시 조회한다.
  * 그래야 백스택 복원 · 딥링크로 들어온 경우에도 같은 데이터를 보게 된다.
  * 없는 id 면 저장소가 예외를 던지고 화면은 에러 상태로 떨어진다.
  */
-@HiltViewModel(assistedFactory = DetailViewModel.Factory::class)
-class DetailViewModel @AssistedInject constructor(
-    @Assisted private val args: DetailPage.Args,
+@HiltViewModel
+class DetailViewModel @Inject constructor(
     private val getRelicDetail: GetRelicDetailUseCase,
-    getSavedRelicIds: GetSavedRelicIdsUseCase,
+    private val getSavedRelicIds: GetSavedRelicIdsUseCase,
     private val toggleSavedRelic: ToggleSavedRelicUseCase,
     private val navigationHelper: NavigationHelper,
     private val messageHelper: MessageHelper,
 ) : MviViewModel<DetailIntent, DetailUiState, DetailReducerEvent>(DetailUiState.Loading) {
 
-    @AssistedFactory
-    interface Factory {
-        fun create(args: DetailPage.Args): DetailViewModel
-    }
-
     /** 저장 여부는 보관함 · 다른 화면에서도 바뀌므로 flow 로 계속 지켜본다. */
     private var saved: Boolean = false
 
-    init {
-        observeSaved(getSavedRelicIds)
-        loadDetail()
-    }
+    /** [DetailIntent.Load] 로 받은 조회 키. 재시도할 때 다시 쓴다. */
+    private var relicId: String? = null
+
+    private var observeJob: Job? = null
 
     override fun onIntent(intent: DetailIntent) {
         when (intent) {
+            is DetailIntent.Load -> load(intent.id)
+
             DetailIntent.Back -> navigationHelper.navigateToBack()
 
             DetailIntent.ToggleSave -> toggleSave()
@@ -96,9 +90,23 @@ class DetailViewModel @AssistedInject constructor(
             state.mapSuccess { it.copy(currentImageIndex = event.index) }
     }
 
-    private fun observeSaved(getSavedRelicIds: GetSavedRelicIdsUseCase) {
-        getSavedRelicIds()
-            .map { ids -> args.id in ids }
+    /**
+     * 인자를 받아 조회를 시작한다.
+     *
+     * 두 번째부터는 무시한다 — 백스택 엔트리마다 ViewModel 이 따로 살아 있어
+     * 한 인스턴스가 다른 id 를 받는 일은 없고, 회전으로 화면이 다시 구성돼도 재조회하지 않아야 한다.
+     */
+    private fun load(id: String) {
+        if (relicId != null) return
+        relicId = id
+        observeSaved(id)
+        loadDetail()
+    }
+
+    private fun observeSaved(id: String) {
+        observeJob?.cancel()
+        observeJob = getSavedRelicIds()
+            .map { ids -> id in ids }
             .distinctUntilChanged()
             .onEach { isSaved ->
                 saved = isSaved
@@ -131,9 +139,10 @@ class DetailViewModel @AssistedInject constructor(
     }
 
     private fun loadDetail() {
+        val id = relicId ?: return
         dispatch(DetailReducerEvent.LoadStarted)
         viewModelScope.launch {
-            runCatching { getRelicDetail(args.id) }
+            runCatching { getRelicDetail(id) }
                 .onSuccess { detail -> dispatch(DetailReducerEvent.Loaded(detail.toSuccess())) }
                 .onFailure { throwable ->
                     dispatch(

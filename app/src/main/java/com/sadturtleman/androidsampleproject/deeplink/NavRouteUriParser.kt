@@ -3,10 +3,10 @@ package com.sadturtleman.androidsampleproject.deeplink
 import android.net.Uri
 import android.util.Log
 import androidx.navigation3.runtime.NavKey
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavRoute
+import com.sadturtleman.androidsampleproject.common.navigation.NavRoute
 import com.sadturtleman.androidsampleproject.navigation.GenericNavKey
 import com.sadturtleman.androidsampleproject.navigation.appRouteByPath
-import com.sadturtleman.androidsampleproject.home.domain.HomePage
+import com.sadturtleman.androidsampleproject.home.navigation.HomePage
 
 private const val TAG = "[DeepLink]"
 

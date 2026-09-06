@@ -36,7 +36,7 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.Museum
  * 올려보내는 두 배선이 전부다.
  */
 @Composable
-fun LibraryPage(
+fun LibraryScreen(
     viewModel: LibraryViewModel,
     modifier: Modifier = Modifier,
 ) {

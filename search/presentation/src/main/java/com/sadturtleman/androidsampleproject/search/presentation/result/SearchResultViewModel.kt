@@ -5,7 +5,7 @@ import androidx.paging.PagingData
 import androidx.paging.cachedIn
 import androidx.paging.map
 import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
-import com.sadturtleman.androidsampleproject.common.domain.helper.NavigationHelper
+import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.domain.saved.GetSavedRelicIdsUseCase
 import com.sadturtleman.androidsampleproject.common.domain.saved.ToggleSavedRelicUseCase
 import com.sadturtleman.androidsampleproject.common.presentation.helper.showSavedToggleResult
@@ -13,13 +13,9 @@ import com.sadturtleman.androidsampleproject.common.presentation.mvi.MviViewMode
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.ArtifactUiModel
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.toArtifactUiModel
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.toSavedRelicVO
-import com.sadturtleman.androidsampleproject.detail.domain.DetailPage
+import com.sadturtleman.androidsampleproject.detail.navigation.DetailPage
 import com.sadturtleman.androidsampleproject.search.domain.CountRelicsUseCase
 import com.sadturtleman.androidsampleproject.search.domain.SearchRelicsUseCase
-import com.sadturtleman.androidsampleproject.search.domain.SearchResultPage
-import dagger.assisted.Assisted
-import dagger.assisted.AssistedFactory
-import dagger.assisted.AssistedInject
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.Job
@@ -28,15 +24,17 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.distinctUntilChanged
+import kotlinx.coroutines.flow.filterNotNull
 import kotlinx.coroutines.flow.flatMapLatest
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 /**
  * 검색 결과 화면 ViewModel (Figma: 최종 → 03 · 검색 결과).
  *
- * 네비게이션 인자([SearchResultPage.Args])를 Hilt assisted injection 으로 생성자에서 그대로 받는다.
+ * 네비게이션 인자는 화면이 [SearchResultIntent.Load] 로 넣어 준다.
  *
  * 결과가 수십만 건이라 목록은 [uiState] 가 아니라 [items] 로 나간다.
  * 상태에 List 를 담으면 페이지를 이어 붙일 때마다 화면 전체 상태를 새로 만들어야 하고,
@@ -47,9 +45,8 @@ import kotlinx.coroutines.launch
  * 나눠 둔다. 타이핑할 때마다 조회가 나가면 안 되기 때문이다.
  */
 @OptIn(ExperimentalCoroutinesApi::class)
-@HiltViewModel(assistedFactory = SearchResultViewModel.Factory::class)
-class SearchResultViewModel @AssistedInject constructor(
-    @Assisted args: SearchResultPage.Args,
+@HiltViewModel
+class SearchResultViewModel @Inject constructor(
     private val searchRelics: SearchRelicsUseCase,
     private val countRelics: CountRelicsUseCase,
     getSavedRelicIds: GetSavedRelicIdsUseCase,
@@ -57,21 +54,15 @@ class SearchResultViewModel @AssistedInject constructor(
     private val navigationHelper: NavigationHelper,
     private val messageHelper: MessageHelper,
 ) : MviViewModel<SearchResultIntent, SearchResultUiState, SearchResultReducerEvent>(
-    SearchResultUiState(
-        query = args.query,
-        // 코드로 둘러보기로 들어왔으면 그 갈래 시트를 펴고 시작한다.
-        isFilterSheetVisible = args.filterTabCode != null,
-        filterTabCode = args.filterTabCode,
-    ),
+    SearchResultUiState(),
 ) {
 
-    @AssistedFactory
-    interface Factory {
-        fun create(args: SearchResultPage.Args): SearchResultViewModel
-    }
-
-    /** 실제로 조회에 쓰인 조건. 여기가 바뀔 때만 새 Pager 가 만들어진다. */
-    private val executedSearch = MutableStateFlow(ExecutedSearch(query = args.query))
+    /**
+     * 실제로 조회에 쓰인 조건. 여기가 바뀔 때만 새 Pager 가 만들어진다.
+     * [SearchResultIntent.Load] 가 오기 전에는 null 이라 조회가 나가지 않는다
+     * (빈 조건으로 한 번 조회한 뒤 진짜 조건으로 또 조회하는 낭비를 막는다).
+     */
+    private val executedSearch = MutableStateFlow<ExecutedSearch?>(null)
 
     /** 저장 목록은 화면 밖(상세 · 보관함)에서도 바뀌므로 계속 지켜본다. */
     private val savedIds = getSavedRelicIds()
@@ -87,6 +78,7 @@ class SearchResultViewModel @AssistedInject constructor(
      * 그 지점이 캐시 뒤라면 이미 받아 둔 페이지를 네트워크에서 다시 받아오게 된다.
      */
     val items: Flow<PagingData<ArtifactUiModel>> = executedSearch
+        .filterNotNull()
         .flatMapLatest { search -> searchRelics(search.query, search.filterCodes) }
         .map { paging -> paging.map { relic -> relic.toArtifactUiModel() } }
         .cachedIn(viewModelScope)
@@ -94,12 +86,10 @@ class SearchResultViewModel @AssistedInject constructor(
             paging.map { card -> card.copy(saved = card.id in ids) }
         }
 
-    init {
-        refreshTotalCount()
-    }
-
     override fun onIntent(intent: SearchResultIntent) {
         when (intent) {
+            is SearchResultIntent.Load -> load(intent.query, intent.filterTabCode)
+
             SearchResultIntent.Back -> navigationHelper.navigateToBack()
 
             is SearchResultIntent.ChangeQuery ->
@@ -152,6 +142,13 @@ class SearchResultViewModel @AssistedInject constructor(
         state: SearchResultUiState,
         event: SearchResultReducerEvent,
     ): SearchResultUiState = when (event) {
+        is SearchResultReducerEvent.ArgsReceived -> state.copy(
+            query = event.query,
+            filterTabCode = event.filterTabCode,
+            // 코드로 둘러보기로 들어왔으면 그 갈래 시트를 펴고 시작한다.
+            isFilterSheetVisible = event.filterTabCode != null,
+        )
+
         is SearchResultReducerEvent.QueryChanged -> state.copy(query = event.query)
 
         is SearchResultReducerEvent.FiltersChanged -> state.copy(appliedFilters = event.filters)
@@ -160,6 +157,16 @@ class SearchResultViewModel @AssistedInject constructor(
 
         is SearchResultReducerEvent.FilterSheetVisibilityChanged ->
             state.copy(isFilterSheetVisible = event.visible)
+    }
+
+    /**
+     * 인자를 받아 첫 조회를 시작한다. 두 번째부터는 무시한다
+     * (백스택 엔트리마다 ViewModel 이 따로 살아 있고, 회전으로 다시 와도 재조회하지 않아야 한다).
+     */
+    private fun load(query: String, filterTabCode: String?) {
+        if (executedSearch.value != null) return
+        dispatch(SearchResultReducerEvent.ArgsReceived(query, filterTabCode))
+        executeSearch()
     }
 
     /**
@@ -179,9 +186,9 @@ class SearchResultViewModel @AssistedInject constructor(
      * 실패해도 목록은 그대로 둔다 — "N건" 자리만 비고 결과는 보인다.
      */
     private fun refreshTotalCount() {
+        val search = executedSearch.value ?: return
         countJob?.cancel()
         dispatch(SearchResultReducerEvent.TotalCountChanged(null))
-        val search = executedSearch.value
         countJob = viewModelScope.launch {
             runCatching { countRelics(search.query, search.filterCodes) }
                 .onSuccess { dispatch(SearchResultReducerEvent.TotalCountChanged(it)) }

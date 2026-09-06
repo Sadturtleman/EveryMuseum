@@ -1,4 +1,4 @@
-package com.sadturtleman.androidsampleproject.common.domain.navigation
+package com.sadturtleman.androidsampleproject.common.navigation
 
 import kotlinx.serialization.json.Json
 

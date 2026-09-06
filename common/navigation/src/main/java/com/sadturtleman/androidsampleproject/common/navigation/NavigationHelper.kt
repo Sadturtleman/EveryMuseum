@@ -1,8 +1,5 @@
-package com.sadturtleman.androidsampleproject.common.domain.helper
+package com.sadturtleman.androidsampleproject.common.navigation
 
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavRoute
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavSignal
-import com.sadturtleman.androidsampleproject.common.domain.navigation.Page
 import kotlinx.coroutines.flow.Flow
 
 /**

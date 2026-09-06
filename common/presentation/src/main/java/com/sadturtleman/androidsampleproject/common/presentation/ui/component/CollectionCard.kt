@@ -65,15 +65,18 @@ fun CollectionCard(
                 image = image,
             )
             if (onSaveClick != null) {
+                val buttonSize = MuseumTheme.size.cardOverlayButton
                 MuseumIconButton(
                     icon = MuseumIcons.Bookmark,
                     contentDescription = if (saved) "보관함에서 빼기" else "보관함에 저장",
                     onClick = onSaveClick,
                     modifier = Modifier
                         .align(Alignment.TopEnd)
-                        .padding(spacing.sm),
+                        // 넓힌 터치 영역만큼 아이콘이 안쪽으로 밀리므로, 그만큼 빼서
+                        // 시안대로 모서리에서 spacing.sm 떨어진 자리에 그린다.
+                        .padding(spacing.sm - museumIconButtonTouchInset(buttonSize)),
                     style = MuseumIconButtonStyle.Overlay,
-                    buttonSize = MuseumTheme.size.cardOverlayButton,
+                    buttonSize = buttonSize,
                     // 저장되면 브랜드색으로 채운다(아이콘이 한 종류라 색으로만 구분한다).
                     container = MuseumTheme.colors.bgBrand.takeIf { saved },
                 )

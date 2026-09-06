@@ -44,10 +44,11 @@ kotlin {
 
 dependencies {
     implementation(project(":store:domain"))
+    implementation(project(":store:navigation"))
     implementation(project(":store:entity"))
     implementation(project(":common:presentation"))
-    implementation(project(":detail:domain"))
-    implementation(project(":search:domain"))
+    implementation(project(":detail:navigation"))
+    implementation(project(":search:navigation"))
 
     // 상세로 이동하기 위해 대상 Page / typed Args 정의만 참조한다(화면 구현은 참조하지 않음).
 

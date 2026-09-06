@@ -1,7 +1,7 @@
-package com.sadturtleman.androidsampleproject.search.domain
+package com.sadturtleman.androidsampleproject.search.navigation
 
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavRoute
-import com.sadturtleman.androidsampleproject.common.domain.navigation.Page
+import com.sadturtleman.androidsampleproject.common.navigation.NavRoute
+import com.sadturtleman.androidsampleproject.common.navigation.Page
 
 /**
  * 검색 결과 페이지 (Figma: 최종 → 03 · 검색 결과).

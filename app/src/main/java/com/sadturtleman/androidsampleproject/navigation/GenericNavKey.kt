@@ -1,7 +1,7 @@
 package com.sadturtleman.androidsampleproject.navigation
 
 import androidx.navigation3.runtime.NavKey
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavRoute
+import com.sadturtleman.androidsampleproject.common.navigation.NavRoute
 import kotlinx.serialization.Serializable
 
 /**

@@ -44,11 +44,12 @@ kotlin {
 
 dependencies {
     implementation(project(":home:domain"))
+    implementation(project(":home:navigation"))
     implementation(project(":home:entity"))
     implementation(project(":common:presentation"))
-    implementation(project(":detail:domain"))
-    implementation(project(":search:domain"))
-    implementation(project(":store:domain"))
+    implementation(project(":detail:navigation"))
+    implementation(project(":search:navigation"))
+    implementation(project(":store:navigation"))
 
     // Hilt
     implementation(libs.hilt.android)

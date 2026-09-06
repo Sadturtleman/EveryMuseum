@@ -5,6 +5,14 @@ import com.sadturtleman.androidsampleproject.common.presentation.mvi.ReducerEven
 /** 검색 결과 상태를 바꾸는 내부 이벤트. */
 sealed interface SearchResultReducerEvent : ReducerEvent {
 
+    /**
+     * 라우트 인자 도착. 검색 바 · 필터 시트의 시작 상태를 한 번에 만든다.
+     */
+    data class ArgsReceived(
+        val query: String,
+        val filterTabCode: String?,
+    ) : SearchResultReducerEvent
+
     /** 검색 바 입력. 조회는 아직 나가지 않는다. */
     data class QueryChanged(val query: String) : SearchResultReducerEvent
 

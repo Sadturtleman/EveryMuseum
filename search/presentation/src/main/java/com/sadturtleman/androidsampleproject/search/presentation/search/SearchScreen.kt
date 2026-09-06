@@ -27,7 +27,7 @@ import com.sadturtleman.androidsampleproject.search.presentation.component.Searc
  * 올려보내는 두 배선이 전부다.
  */
 @Composable
-fun SearchPage(
+fun SearchScreen(
     viewModel: SearchViewModel,
     modifier: Modifier = Modifier,
 ) {

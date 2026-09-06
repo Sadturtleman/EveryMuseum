@@ -7,7 +7,7 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
 import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
-import com.sadturtleman.androidsampleproject.common.domain.helper.NavigationHelper
+import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalMessageHelper
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalNavigationHelper
 import com.sadturtleman.androidsampleproject.deeplink.resolveNewIntentRoute

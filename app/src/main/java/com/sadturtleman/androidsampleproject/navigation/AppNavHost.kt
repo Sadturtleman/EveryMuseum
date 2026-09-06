@@ -13,10 +13,10 @@ import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.entryProvider
 import androidx.navigation3.runtime.rememberSaveableStateHolderNavEntryDecorator
 import androidx.navigation3.ui.NavDisplay
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavRoute
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavSignal
+import com.sadturtleman.androidsampleproject.common.navigation.NavRoute
+import com.sadturtleman.androidsampleproject.common.navigation.NavSignal
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalNavigationHelper
-import com.sadturtleman.androidsampleproject.home.domain.HomePage
+import com.sadturtleman.androidsampleproject.home.navigation.HomePage
 
 /**
  * 백스택을 실제로 조작하는 유일한 지점.

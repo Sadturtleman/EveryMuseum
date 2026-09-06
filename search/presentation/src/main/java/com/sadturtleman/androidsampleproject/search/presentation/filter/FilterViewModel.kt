@@ -36,23 +36,20 @@ class FilterViewModel @Inject constructor(
      */
     private var selectedFilters: List<AppliedFilterUiModel> = emptyList()
 
-    /** 예상 건수를 세는 데 쓰는 질의어. 시트를 띄운 화면이 [FilterIntent.SyncQuery] 로 넣어 준다. */
+    /** 예상 건수를 세는 데 쓰는 질의어. 시트를 띄운 화면이 [FilterIntent.Open] 으로 넣어 준다. */
     private var query: String = ""
+
+    /** 옵션을 한 번이라도 불러왔는지. 시트를 처음 열 때만 초기 조회를 돌리기 위한 표시다. */
+    private var loaded = false
 
     private var optionsJob: Job? = null
     private var countJob: Job? = null
 
-    init {
-        loadOptions(TABS.first().parentCode)
-    }
-
     override fun onIntent(intent: FilterIntent) {
         when (intent) {
-            is FilterIntent.SyncQuery -> syncQuery(intent.query)
+            is FilterIntent.Open -> open(intent.query, intent.tabCode)
 
             is FilterIntent.SelectTab -> loadOptions(intent.tab.parentCode)
-
-            is FilterIntent.SelectTabByCode -> selectTabByCode(intent.parentCode)
 
             is FilterIntent.ToggleOption -> toggleOption(intent.option)
 
@@ -142,17 +139,26 @@ class FilterViewModel @Inject constructor(
         refreshResultCount()
     }
 
-    /** 이미 그 탭이면 다시 부르지 않는다(시트를 여닫을 때마다 코드 API 를 치지 않도록). */
-    private fun selectTabByCode(parentCode: String) {
-        if (TABS.none { it.parentCode == parentCode }) return
-        if (selectedTabCode() == parentCode && currentState is FilterUiState.Success) return
-        loadOptions(parentCode)
-    }
-
-    private fun syncQuery(newQuery: String) {
-        if (query == newQuery) return
+    /**
+     * 시트가 열렸다. 처음이면 옵션을 불러오고, 두 번째부터는 달라진 것만 따라간다.
+     *
+     * 질의어를 옵션 조회보다 **먼저** 넣는다 — [loadOptions] 가 함께 세는 예상 건수에 그대로 쓰인다.
+     * 시트를 여닫을 때마다 코드 API 를 다시 치지는 않는다.
+     */
+    private fun open(newQuery: String, tabCode: String?) {
+        val queryChanged = query != newQuery
         query = newQuery
-        refreshResultCount()
+        val requestedTab = tabCode?.takeIf { code -> TABS.any { it.parentCode == code } }
+        when {
+            !loaded -> {
+                loaded = true
+                loadOptions(requestedTab ?: TABS.first().parentCode)
+            }
+            // 탭이 바뀌면 옵션을 다시 부르고, 그때 예상 건수도 같이 따라온다.
+            requestedTab != null && requestedTab != selectedTabCode() -> loadOptions(requestedTab)
+
+            queryChanged -> refreshResultCount()
+        }
     }
 
     /**

@@ -47,6 +47,9 @@ dependencies {
     // Compose / lifecycle / Hilt 진입점이 함께 딸려오도록 api 로 노출한다.
     api(project(":common:domain"))
 
+    // NavigationHelperImpl · LocalNavigationHelper 가 계약을 그대로 내보낸다.
+    api(project(":common:navigation"))
+
     api(libs.androidx.core.ktx)
     api(libs.androidx.lifecycle.runtime.ktx)
     api(libs.androidx.lifecycle.runtime.compose)

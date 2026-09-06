@@ -2,10 +2,10 @@ package com.sadturtleman.androidsampleproject.store.presentation.library
 
 import androidx.lifecycle.viewModelScope
 import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
-import com.sadturtleman.androidsampleproject.common.domain.helper.NavigationHelper
+import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.domain.saved.ToggleSavedRelicUseCase
-import com.sadturtleman.androidsampleproject.detail.domain.DetailPage
-import com.sadturtleman.androidsampleproject.search.domain.SearchPage
+import com.sadturtleman.androidsampleproject.detail.navigation.DetailPage
+import com.sadturtleman.androidsampleproject.search.navigation.SearchPage
 import com.sadturtleman.androidsampleproject.store.domain.GetSavedRelicsUseCase
 import com.sadturtleman.androidsampleproject.common.presentation.helper.showSavedToggleResult
 import com.sadturtleman.androidsampleproject.common.presentation.mvi.MviViewModel

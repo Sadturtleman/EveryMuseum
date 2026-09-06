@@ -5,6 +5,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,11 +28,15 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.Museum
  * 올려보내는 두 배선이 전부다.
  */
 @Composable
-fun DetailPage(
+fun DetailScreen(
+    relicId: String,
     viewModel: DetailViewModel,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // 라우트 인자는 생성자가 아니라 인텐트로 들어간다. ViewModel 이 두 번째부터는 무시한다.
+    LaunchedEffect(relicId) { viewModel.onIntent(DetailIntent.Load(relicId)) }
 
     DetailView(
         state = state,

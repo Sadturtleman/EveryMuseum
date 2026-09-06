@@ -46,13 +46,20 @@ import kotlinx.coroutines.flow.flowOf
  */
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun SearchResultPage(
+fun SearchResultScreen(
+    query: String,
+    filterTabCode: String?,
     viewModel: SearchResultViewModel,
     filterViewModel: FilterViewModel,
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val filterState by filterViewModel.uiState.collectAsStateWithLifecycle()
+
+    // 라우트 인자는 생성자가 아니라 인텐트로 들어간다. ViewModel 이 두 번째부터는 무시한다.
+    LaunchedEffect(query, filterTabCode) {
+        viewModel.onIntent(SearchResultIntent.Load(query, filterTabCode))
+    }
 
     SearchResultView(
         state = state,
@@ -62,14 +69,10 @@ fun SearchResultPage(
     )
 
     if (state.isFilterSheetVisible) {
-        // 시트의 "N건 결과 보기" 는 질의어까지 반영한 건수라야 한다.
-        // 필터 ViewModel 은 검색 바를 모르므로 여는 쪽이 현재 질의어를 넣어 준다.
+        // 시트의 "N건 결과 보기" 는 질의어까지 반영한 건수라야 하는데
+        // 필터 ViewModel 은 검색 바를 모른다. 여는 쪽이 자기 상태를 실어 보낸다.
         LaunchedEffect(state.query, state.filterTabCode) {
-            filterViewModel.onIntent(FilterIntent.SyncQuery(state.query))
-            // 코드로 둘러보기로 들어왔으면 그 갈래 탭을 펴 준다.
-            state.filterTabCode?.let { code ->
-                filterViewModel.onIntent(FilterIntent.SelectTabByCode(code))
-            }
+            filterViewModel.onIntent(FilterIntent.Open(state.query, state.filterTabCode))
         }
 
         // 시트 표면(라운드 · 핸들)은 FilterView 가 직접 그리므로 컨테이너는 비워 둔다.

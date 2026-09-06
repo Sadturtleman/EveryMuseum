@@ -3,21 +3,21 @@ package com.sadturtleman.androidsampleproject.navigation
 import androidx.compose.runtime.remember
 import androidx.hilt.lifecycle.viewmodel.compose.hiltViewModel
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumTab
-import com.sadturtleman.androidsampleproject.detail.domain.DetailPage
-import com.sadturtleman.androidsampleproject.detail.presentation.detail.DetailPage
+import com.sadturtleman.androidsampleproject.detail.navigation.DetailPage
+import com.sadturtleman.androidsampleproject.detail.presentation.detail.DetailScreen
 import com.sadturtleman.androidsampleproject.detail.presentation.detail.DetailViewModel
-import com.sadturtleman.androidsampleproject.home.domain.HomePage
-import com.sadturtleman.androidsampleproject.home.presentation.home.HomePage
+import com.sadturtleman.androidsampleproject.home.navigation.HomePage
+import com.sadturtleman.androidsampleproject.home.presentation.home.HomeScreen
 import com.sadturtleman.androidsampleproject.home.presentation.home.HomeViewModel
-import com.sadturtleman.androidsampleproject.search.domain.SearchPage
-import com.sadturtleman.androidsampleproject.search.domain.SearchResultPage
+import com.sadturtleman.androidsampleproject.search.navigation.SearchPage
+import com.sadturtleman.androidsampleproject.search.navigation.SearchResultPage
 import com.sadturtleman.androidsampleproject.search.presentation.filter.FilterViewModel
-import com.sadturtleman.androidsampleproject.search.presentation.result.SearchResultPage
+import com.sadturtleman.androidsampleproject.search.presentation.result.SearchResultScreen
 import com.sadturtleman.androidsampleproject.search.presentation.result.SearchResultViewModel
-import com.sadturtleman.androidsampleproject.search.presentation.search.SearchPage
+import com.sadturtleman.androidsampleproject.search.presentation.search.SearchScreen
 import com.sadturtleman.androidsampleproject.search.presentation.search.SearchViewModel
-import com.sadturtleman.androidsampleproject.store.domain.StorePage
-import com.sadturtleman.androidsampleproject.store.presentation.library.LibraryPage
+import com.sadturtleman.androidsampleproject.store.navigation.StorePage
+import com.sadturtleman.androidsampleproject.store.presentation.library.LibraryScreen
 import com.sadturtleman.androidsampleproject.store.presentation.library.LibraryViewModel
 
 /**
@@ -37,7 +37,7 @@ val appRoutes: List<AppRoute> = listOf(
         path = HomePage.PATH,
         isTopTab = true,
         tab = MuseumTab.Home,
-        render = { HomePage(viewModel = hiltViewModel<HomeViewModel>()) },
+        render = { HomeScreen(viewModel = hiltViewModel<HomeViewModel>()) },
     ),
     AppRoute(
         path = SearchPage.PATH,
@@ -49,7 +49,7 @@ val appRoutes: List<AppRoute> = listOf(
                 GenericNavKey(SearchPage.PATH, args),
             )
         },
-        render = { SearchPage(viewModel = hiltViewModel<SearchViewModel>()) },
+        render = { SearchScreen(viewModel = hiltViewModel<SearchViewModel>()) },
     ),
     AppRoute(
         path = SearchResultPage.PATH,
@@ -64,10 +64,10 @@ val appRoutes: List<AppRoute> = listOf(
         },
         render = { rawArgs ->
             val args = remember(rawArgs) { SearchResultPage.Args.from(rawArgs) }
-            SearchResultPage(
-                viewModel = hiltViewModel<SearchResultViewModel, SearchResultViewModel.Factory>(
-                    creationCallback = { factory -> factory.create(args) },
-                ),
+            SearchResultScreen(
+                query = args.query,
+                filterTabCode = args.filterTabCode,
+                viewModel = hiltViewModel<SearchResultViewModel>(),
                 // 필터 시트는 결과 화면과 같은 백스택 엔트리에 산다(엔트리가 pop 되면 함께 정리된다).
                 filterViewModel = hiltViewModel<FilterViewModel>(),
             )
@@ -83,7 +83,7 @@ val appRoutes: List<AppRoute> = listOf(
                 GenericNavKey(StorePage.PATH, args),
             )
         },
-        render = { LibraryPage(viewModel = hiltViewModel<LibraryViewModel>()) },
+        render = { LibraryScreen(viewModel = hiltViewModel<LibraryViewModel>()) },
     ),
     AppRoute(
         path = DetailPage.PATH,
@@ -95,13 +95,12 @@ val appRoutes: List<AppRoute> = listOf(
             )
         },
         render = { rawArgs ->
-            // String 맵 -> typed Args 디코딩은 이 자리에서 한 번만 하고,
-            // Hilt assisted injection 으로 ViewModel 생성자에 그대로 넘긴다.
+            // String 맵 -> typed Args 디코딩은 이 자리에서 한 번만 한다.
+            // 화면은 그 값을 인텐트로 ViewModel 에 넣는다.
             val args = remember(rawArgs) { DetailPage.Args.from(rawArgs) }
-            DetailPage(
-                viewModel = hiltViewModel<DetailViewModel, DetailViewModel.Factory>(
-                    creationCallback = { factory -> factory.create(args) },
-                )
+            DetailScreen(
+                relicId = args.id,
+                viewModel = hiltViewModel<DetailViewModel>(),
             )
         },
     ),

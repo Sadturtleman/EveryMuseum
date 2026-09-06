@@ -1,7 +1,7 @@
 package com.sadturtleman.androidsampleproject.common.presentation
 
 import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
-import com.sadturtleman.androidsampleproject.common.domain.helper.NavigationHelper
+import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.presentation.helper.MessageHelperImpl
 import com.sadturtleman.androidsampleproject.common.presentation.helper.NavigationHelperImpl
 import dagger.Module

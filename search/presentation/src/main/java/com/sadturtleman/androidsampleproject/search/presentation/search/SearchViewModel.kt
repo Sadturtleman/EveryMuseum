@@ -2,10 +2,10 @@ package com.sadturtleman.androidsampleproject.search.presentation.search
 
 import androidx.lifecycle.viewModelScope
 import com.sadturtleman.androidsampleproject.common.domain.code.GetCodesUseCase
-import com.sadturtleman.androidsampleproject.common.domain.helper.NavigationHelper
+import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.presentation.mvi.MviViewModel
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumIcons
-import com.sadturtleman.androidsampleproject.search.domain.SearchResultPage
+import com.sadturtleman.androidsampleproject.search.navigation.SearchResultPage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import javax.inject.Inject
@@ -13,7 +13,7 @@ import javax.inject.Inject
 /**
  * 검색 화면 ViewModel (Figma: 최종 → 02 · 검색).
  *
- * 이 화면은 질의를 "받기만" 한다. 실제 조회는 검색 결과 화면([SearchResultPage])이 맡으므로
+ * 이 화면은 질의를 "받기만" 한다. 실제 조회는 검색 결과 화면(SearchResultScreen)이 맡으므로
  * 검색 실행 인텐트는 결과 화면으로의 이동으로 끝난다.
  *
  * TODO(api): 인기 색인어는 아직 고정 목록이고, 최근 검색어는 메모리에만 남아 프로세스가 죽으면 사라진다

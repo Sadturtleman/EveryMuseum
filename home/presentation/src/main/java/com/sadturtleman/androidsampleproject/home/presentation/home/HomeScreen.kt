@@ -28,7 +28,7 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.Museum
  * 화면 그리기는 preview 가능한 [HomeView] 가 전담한다.
  */
 @Composable
-fun HomePage(
+fun HomeScreen(
     viewModel: HomeViewModel,
     modifier: Modifier = Modifier,
 ) {

@@ -1,7 +1,7 @@
-package com.sadturtleman.androidsampleproject.detail.domain
+package com.sadturtleman.androidsampleproject.detail.navigation
 
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavRoute
-import com.sadturtleman.androidsampleproject.common.domain.navigation.Page
+import com.sadturtleman.androidsampleproject.common.navigation.NavRoute
+import com.sadturtleman.androidsampleproject.common.navigation.Page
 
 /**
  * typed argument 를 가지는 페이지의 표준 형태.

@@ -12,12 +12,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.navigation3.runtime.NavKey
 import androidx.navigation3.runtime.rememberNavBackStack
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavRoute
+import com.sadturtleman.androidsampleproject.common.navigation.NavRoute
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalNavigationHelper
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumTabBar
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.EveryMuseumTheme
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
-import com.sadturtleman.androidsampleproject.home.domain.HomePage
+import com.sadturtleman.androidsampleproject.home.navigation.HomePage
 
 /**
  * 앱 최상위 Composable. 백스택 소유 + 시스템 인셋 처리 + [AppNavHost] 배치를 담당한다.
