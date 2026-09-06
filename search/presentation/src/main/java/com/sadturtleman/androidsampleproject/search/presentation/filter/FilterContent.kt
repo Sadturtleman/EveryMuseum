@@ -22,10 +22,9 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.Museum
  * 탭 줄은 고정되고 옵션 목록만 스크롤한다.
  */
 @Composable
-fun FilterContent(
+internal fun FilterContent(
     state: FilterUiState.Success,
-    onTabSelect: (FilterTabUiModel) -> Unit,
-    onOptionToggle: (FilterOptionUiModel) -> Unit,
+    onIntent: (FilterIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -36,7 +35,7 @@ fun FilterContent(
             FilterTabRow(
                 tabs = state.tabs,
                 selectedTabCode = state.selectedTabCode,
-                onTabSelect = onTabSelect,
+                onTabSelect = { tab -> onIntent(FilterIntent.SelectTab(tab)) },
             )
         }
 
@@ -45,7 +44,7 @@ fun FilterContent(
                 label = option.label,
                 code = option.code,
                 selected = option.code in state.selectedCodes,
-                onClick = { onOptionToggle(option) },
+                onClick = { onIntent(FilterIntent.ToggleOption(option)) },
                 modifier = Modifier.padding(horizontal = MuseumTheme.spacing.lg),
             )
         }

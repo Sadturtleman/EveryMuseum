@@ -1,6 +1,5 @@
 package com.sadturtleman.androidsampleproject.store.presentation.library
 
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
@@ -16,9 +15,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.sadturtleman.androidsampleproject.common.presentation.ui.component.ArtifactImage
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.CollectionCard
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.CollectionListItem
-import com.sadturtleman.androidsampleproject.common.presentation.ui.model.ArtifactUiModel
+import com.sadturtleman.androidsampleproject.common.presentation.ui.component.debouncedClickable
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
 
 /**
@@ -28,11 +28,9 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.Museum
  * [LibraryLayout] 에 따라 리스트와 2열 그리드를 전환한다.
  */
 @Composable
-fun LibraryContent(
+internal fun LibraryContent(
     state: LibraryUiState.Success,
-    onSortClick: () -> Unit,
-    onItemClick: (ArtifactUiModel) -> Unit,
-    onItemSaveClick: (ArtifactUiModel) -> Unit,
+    onIntent: (LibraryIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -63,7 +61,7 @@ fun LibraryContent(
                 )
                 Text(
                     text = state.sort,
-                    modifier = Modifier.clickable(onClick = onSortClick),
+                    modifier = Modifier.debouncedClickable { onIntent(LibraryIntent.ToggleSort) },
                     style = MuseumTheme.typography.labelM,
                     color = MuseumTheme.colors.textSecondary,
                 )
@@ -77,7 +75,8 @@ fun LibraryContent(
                     meta = item.museum,
                     spec = item.spec,
                     artifactType = item.type,
-                    onClick = { onItemClick(item) },
+                    onClick = { onIntent(LibraryIntent.ClickItem(item.id)) },
+                    image = { ArtifactImage(item.imageUrl, item.nameKr) },
                 )
             }
 
@@ -98,8 +97,10 @@ fun LibraryContent(
                                 artifactType = item.type,
                                 designationName1 = item.designation,
                                 nationalityName2 = item.era,
-                                onClick = { onItemClick(item) },
-                                onSaveClick = { onItemSaveClick(item) },
+                                onClick = { onIntent(LibraryIntent.ClickItem(item.id)) },
+                                onSaveClick = { onIntent(LibraryIntent.ToggleSave(item.id)) },
+                                saved = item.saved,
+                                image = { ArtifactImage(item.imageUrl, item.nameKr) },
                             )
                         }
                         repeat(GRID_COLUMNS - row.size) {

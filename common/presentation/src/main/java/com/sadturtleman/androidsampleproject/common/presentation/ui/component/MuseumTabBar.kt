@@ -100,7 +100,7 @@ private fun RowScope.MuseumTabItem(
             .selectable(
                 selected = selected,
                 role = Role.Tab,
-                onClick = onClick,
+                onClick = rememberDebouncedClick(onClick = onClick),
             ),
         verticalArrangement = Arrangement.spacedBy(
             MuseumTheme.spacing.xs,

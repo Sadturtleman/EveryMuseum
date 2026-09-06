@@ -37,7 +37,14 @@ kotlin {
 
 dependencies {
     implementation(project(":common:domain"))
-    implementation(project(":common:entity"))
+    // toRelicVO 등 공용 매퍼가 반환 타입으로 노출한다(:detail:data 가 쓴다).
+    api(project(":common:entity"))
+
+    // 디스패처 한정자 · 바인딩
+    implementation(project(":common:di"))
+
+    // 통신 스택. Retrofit 타입이 api 로 딸려온다.
+    implementation(project(":common:network"))
 
     // Hilt
     implementation(libs.hilt.android)
@@ -45,4 +52,10 @@ dependencies {
 
     // Coroutines
     implementation(libs.kotlinx.coroutines.android)
+
+    // 목록 페이지네이션
+    implementation(libs.androidx.paging.common)
+
+    testImplementation(libs.junit)
+    testImplementation(libs.kotlinx.coroutines.test)
 }

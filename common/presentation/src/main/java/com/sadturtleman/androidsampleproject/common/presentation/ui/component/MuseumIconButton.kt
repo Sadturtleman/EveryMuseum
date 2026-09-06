@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.material3.minimumInteractiveComponentSize
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -37,11 +38,14 @@ enum class MuseumIconButtonStyle {
 /**
  * 아이콘 전용 버튼 (Figma: C06 · IconButton).
  *
- * 기본 크기는 `size/touch/min` 44dp 로, 최소 터치 영역을 항상 만족한다.
- * 카드 위 저장 버튼처럼 더 작게 써야 하면 [buttonSize] 로 줄인다.
+ * [buttonSize] 는 **그려지는** 크기다. 터치 영역은 그와 무관하게 항상 48dp 이상으로 잡히므로
+ * 카드 위 저장 버튼처럼 작게 그려도 누르기 어려워지지 않는다.
  *
  * @param tint 아이콘 색을 직접 지정한다. null 이면 [style] 에서 유도한다.
  *  히어로 이미지 위 투명 앱바처럼 배경 없이 색만 바꿔야 할 때 쓴다.
+ * @param container 배경색을 직접 지정한다. null 이면 [style] 에서 유도한다.
+ *  저장된 북마크처럼 "켜짐" 을 색으로 알려야 할 때 쓴다 — Overlay 의 기본 배경이
+ *  라이트 · 다크 양쪽에서 어두운 스크림이라 아이콘 색만 바꾸면 대비가 나오지 않는다.
  */
 @Composable
 fun MuseumIconButton(
@@ -53,10 +57,11 @@ fun MuseumIconButton(
     enabled: Boolean = true,
     buttonSize: Dp = MuseumTheme.size.touchMin,
     tint: Color? = null,
+    container: Color? = null,
 ) {
     val colors = MuseumTheme.colors
     val shape = MuseumTheme.shapes.full
-    val container = when (style) {
+    val resolvedContainer = container ?: when (style) {
         MuseumIconButtonStyle.Plain -> Color.Transparent
         MuseumIconButtonStyle.Filled -> colors.bgSurfaceSunken
         MuseumIconButtonStyle.Overlay -> colors.bgScrim
@@ -69,10 +74,13 @@ fun MuseumIconButton(
     Box(
         modifier = modifier
             .alpha(if (enabled) 1f else 0.4f)
+            // 그려지는 크기와 별개로 터치 영역을 48dp 로 넓힌다.
+            // 카드 위 저장 버튼은 36dp 라, 손가락이 몇 dp 만 빗나가도 카드 클릭으로 넘어간다.
+            .minimumInteractiveComponentSize()
             .size(buttonSize)
             .clip(shape)
-            .background(container)
-            .clickable(
+            .background(resolvedContainer)
+            .debouncedClickable(
                 enabled = enabled,
                 role = Role.Button,
                 onClick = onClick,
@@ -86,6 +94,18 @@ fun MuseumIconButton(
         )
     }
 }
+
+/**
+ * [MuseumIconButton] 이 터치 영역을 48dp 로 넓히며 [buttonSize] 바깥에 두르는 여백.
+ *
+ * 아이콘이 그려지는 자리는 그만큼 안쪽으로 밀린다. 시안 위치를 지켜야 하는 곳
+ * (카드 위 저장 버튼 등)은 자기 padding 에서 이 값을 빼면 원래 자리로 돌아온다.
+ */
+fun museumIconButtonTouchInset(buttonSize: Dp): Dp =
+    ((MIN_TOUCH_TARGET - buttonSize) / 2).coerceAtLeast(0.dp)
+
+/** Material 이 보장하는 최소 터치 영역. minimumInteractiveComponentSize 와 같은 값이다. */
+private val MIN_TOUCH_TARGET = 48.dp
 
 @Preview(name = "IconButton · Light", showBackground = true, backgroundColor = 0xFFF7F4EE)
 @Preview(

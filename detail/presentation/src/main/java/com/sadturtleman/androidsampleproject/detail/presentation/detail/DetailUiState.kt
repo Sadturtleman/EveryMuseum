@@ -1,6 +1,7 @@
 package com.sadturtleman.androidsampleproject.detail.presentation.detail
 
 import androidx.compose.runtime.Immutable
+import com.sadturtleman.androidsampleproject.common.presentation.mvi.UiState
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.ArtifactType
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.ArtifactUiModel
 
@@ -10,7 +11,7 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.model.Artifa
  * 데이터 출처는 `GET /openapi/relic/detail?id=...` 이며
  * 응답의 list · imageList · relationList 세 묶음을 모두 쓴다.
  */
-sealed interface DetailUiState {
+sealed interface DetailUiState : UiState {
 
     /** 상세 조회 중 */
     data object Loading : DetailUiState

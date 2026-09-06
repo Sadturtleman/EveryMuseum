@@ -1,7 +1,6 @@
 package com.sadturtleman.androidsampleproject.detail.presentation.detail
 
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -25,6 +24,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.em
 import androidx.compose.ui.unit.sp
+import com.sadturtleman.androidsampleproject.common.presentation.ui.component.ArtifactImage
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.ArtifactThumb
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.ArtifactType
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumBadge
@@ -35,7 +35,7 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.component.Mu
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumMetaRow
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumSectionHeader
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.RelatedCard
-import com.sadturtleman.androidsampleproject.common.presentation.ui.model.ArtifactUiModel
+import com.sadturtleman.androidsampleproject.common.presentation.ui.component.debouncedClickable
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.museumLinearGradient
 
@@ -46,13 +46,9 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.museum
  * 비어 있는 블록(공개 이미지 · 소장품 정보 · 설명 · 연관 소장품)은 통째로 생략한다.
  */
 @Composable
-fun DetailContent(
+internal fun DetailContent(
     state: DetailUiState.Success,
-    onSaveClick: () -> Unit,
-    onShareClick: () -> Unit,
-    onImageClick: (DetailImageUiModel) -> Unit,
-    onRelatedClick: (ArtifactUiModel) -> Unit,
-    onRelatedSeeAllClick: () -> Unit,
+    onIntent: (DetailIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     LazyColumn(
@@ -63,6 +59,8 @@ fun DetailContent(
         item(key = "hero") {
             DetailHero(
                 type = state.type,
+                imageUrl = state.images.getOrNull(state.currentImageIndex)?.url,
+                contentDescription = state.nameKr,
                 imageCount = state.images.size,
                 currentIndex = state.currentImageIndex,
             )
@@ -71,8 +69,8 @@ fun DetailContent(
         item(key = "title") {
             DetailTitleBlock(
                 state = state,
-                onSaveClick = onSaveClick,
-                onShareClick = onShareClick,
+                onSaveClick = { onIntent(DetailIntent.ToggleSave) },
+                onShareClick = { onIntent(DetailIntent.Share) },
             )
         }
 
@@ -91,9 +89,10 @@ fun DetailContent(
                                 modifier = Modifier
                                     .size(IMAGE_THUMB_SIZE)
                                     .clip(MuseumTheme.shapes.sm)
-                                    .clickable { onImageClick(image) },
+                                    .debouncedClickable { onIntent(DetailIntent.SelectImage(image)) },
                                 type = image.type,
                                 shape = MuseumTheme.shapes.sm,
+                                image = { ArtifactImage(image.url) },
                             )
                         }
                     }
@@ -136,7 +135,7 @@ fun DetailContent(
                     header = {
                         MuseumSectionHeader(
                             title = "연관 소장품",
-                            onActionClick = onRelatedSeeAllClick,
+                            onActionClick = { onIntent(DetailIntent.ClickRelatedSeeAll) },
                             modifier = Modifier.padding(horizontal = MuseumTheme.spacing.lg),
                         )
                     },
@@ -153,7 +152,8 @@ fun DetailContent(
                                 reltRelicName = item.nameKr,
                                 reltMuseumFullName = item.museum,
                                 artifactType = item.type,
-                                onClick = { onRelatedClick(item) },
+                                onClick = { onIntent(DetailIntent.ClickRelated(item.id)) },
+                                image = { ArtifactImage(item.imageUrl, item.nameKr) },
                             )
                         }
                     }
@@ -180,6 +180,8 @@ fun DetailContent(
 @Composable
 private fun DetailHero(
     type: ArtifactType,
+    imageUrl: String?,
+    contentDescription: String?,
     imageCount: Int,
     currentIndex: Int,
     modifier: Modifier = Modifier,
@@ -200,6 +202,7 @@ private fun DetailHero(
                 .offset(y = HERO_SILHOUETTE_OFFSET_Y)
                 .size(HERO_SILHOUETTE_SIZE),
             type = type,
+            image = { ArtifactImage(imageUrl, contentDescription) },
         )
 
         Box(

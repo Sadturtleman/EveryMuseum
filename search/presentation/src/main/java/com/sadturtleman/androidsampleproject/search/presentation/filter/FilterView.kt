@@ -2,7 +2,6 @@ package com.sadturtleman.androidsampleproject.search.presentation.filter
 
 import android.content.res.Configuration
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -30,9 +29,12 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.component.Mu
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumErrorView
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumIcons
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumLoadingView
+import com.sadturtleman.androidsampleproject.common.presentation.ui.component.debouncedClickable
+import com.sadturtleman.androidsampleproject.common.presentation.ui.preview.PREVIEW_DEVICE
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.EveryMuseumTheme
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumRadius
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
+import com.sadturtleman.androidsampleproject.search.presentation.result.AppliedFilterUiModel
 
 /**
  * 필터 바텀시트 (Figma: 최종 → 04 · 필터).
@@ -40,16 +42,12 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.Museum
  * 시트 표면 자체를 그린다. 뒤에 깔리는 스크림과 드래그 동작은 이 컴포저블을 띄우는 쪽
  * (`ModalBottomSheet` 등)이 담당한다.
  *
- * 아직 ViewModel 을 연결하지 않은 view-only 단계라 상태와 콜백을 모두 인자로 받는다.
+ * 입력은 [FilterUiState] 하나, 출력은 [FilterIntent] 하나다.
  */
 @Composable
-fun FilterView(
+internal fun FilterView(
     state: FilterUiState,
-    onTabSelect: (FilterTabUiModel) -> Unit,
-    onOptionToggle: (FilterOptionUiModel) -> Unit,
-    onReset: () -> Unit,
-    onApply: () -> Unit,
-    onRetry: () -> Unit,
+    onIntent: (FilterIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
     val colors = MuseumTheme.colors
@@ -77,7 +75,7 @@ fun FilterView(
             )
             Text(
                 text = "초기화",
-                modifier = Modifier.clickable(onClick = onReset),
+                modifier = Modifier.debouncedClickable { onIntent(FilterIntent.Reset) },
                 style = MuseumTheme.typography.labelM,
                 color = colors.textTertiary,
             )
@@ -95,14 +93,14 @@ fun FilterView(
                     FilterTabRow(
                         tabs = state.tabs,
                         selectedTabCode = state.selectedTabCode,
-                        onTabSelect = onTabSelect,
+                        onTabSelect = { tab -> onIntent(FilterIntent.SelectTab(tab)) },
                     )
                     Box(modifier = Modifier.weight(1f)) { MuseumLoadingView() }
                 }
 
                 is FilterUiState.Error -> MuseumErrorView(
                     message = state.message,
-                    onRetry = onRetry,
+                    onRetry = { onIntent(FilterIntent.Retry) },
                 )
 
                 is FilterUiState.Success -> if (state.isEmpty) {
@@ -110,7 +108,7 @@ fun FilterView(
                         FilterTabRow(
                             tabs = state.tabs,
                             selectedTabCode = state.selectedTabCode,
-                            onTabSelect = onTabSelect,
+                            onTabSelect = { tab -> onIntent(FilterIntent.SelectTab(tab)) },
                         )
                         Box(
                             modifier = Modifier.weight(1f),
@@ -126,8 +124,7 @@ fun FilterView(
                 } else {
                     FilterContent(
                         state = state,
-                        onTabSelect = onTabSelect,
-                        onOptionToggle = onOptionToggle,
+                        onIntent = onIntent,
                         modifier = Modifier.fillMaxSize(),
                     )
                 }
@@ -136,8 +133,8 @@ fun FilterView(
 
         FilterActionBar(
             resultCount = (state as? FilterUiState.Success)?.resultCount,
-            onReset = onReset,
-            onApply = onApply,
+            onReset = { onIntent(FilterIntent.Reset) },
+            onApply = { onIntent(FilterIntent.Apply) },
         )
     }
 }
@@ -235,11 +232,7 @@ private fun FilterViewPreviewHost(state: FilterUiState) {
             )
             FilterView(
                 state = state,
-                onTabSelect = {},
-                onOptionToggle = {},
-                onReset = {},
-                onApply = {},
-                onRetry = {},
+                onIntent = {},
                 modifier = Modifier
                     .align(Alignment.BottomCenter)
                     .fillMaxHeight(SHEET_HEIGHT_FRACTION),
@@ -273,7 +266,7 @@ private fun FilterViewSuccessDarkPreview() {
 @Preview(name = "필터 · 선택 없음", device = PREVIEW_DEVICE, showBackground = true)
 @Composable
 private fun FilterViewNoSelectionPreview() {
-    FilterViewPreviewHost(FilterPreviewData.success.copy(selectedCodes = emptySet()))
+    FilterViewPreviewHost(FilterPreviewData.success.copy(selectedFilters = emptyList()))
 }
 
 @Preview(name = "필터 · 로딩", device = PREVIEW_DEVICE, showBackground = true)
@@ -297,12 +290,9 @@ private fun FilterViewErrorPreview() {
 @Composable
 private fun FilterViewEmptyPreview() {
     FilterViewPreviewHost(
-        FilterPreviewData.success.copy(options = emptyList(), selectedCodes = emptySet()),
+        FilterPreviewData.success.copy(options = emptyList(), selectedFilters = emptyList()),
     )
 }
-
-/** iPhone 16 시안(393×852)에 대응하는 안드로이드 기준 기기. */
-private const val PREVIEW_DEVICE = "spec:width=393dp,height=852dp,dpi=440"
 
 private object FilterPreviewData {
 
@@ -328,7 +318,7 @@ private object FilterPreviewData {
             FilterOptionUiModel(code = "PS06001018", label = "한국 · 조선"),
             FilterOptionUiModel(code = "PS06001020", label = "한국 · 대한제국"),
         ),
-        selectedCodes = setOf("PS06001009"),
+        selectedFilters = listOf(AppliedFilterUiModel(code = "PS06001009", label = "한국 · 백제")),
         resultCount = 93,
     )
 }

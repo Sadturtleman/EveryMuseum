@@ -36,6 +36,9 @@ android {
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
+        // MviViewModel 이 explicit backing field(`val uiState: StateFlow<S> field = ...`) 를 쓴다.
+        // 선언 모듈과 소비 모듈 양쪽에 같은 플래그가 있어야 메타데이터를 읽을 수 있다.
+        freeCompilerArgs.add("-Xexplicit-backing-fields")
     }
 }
 
@@ -43,6 +46,9 @@ dependencies {
     // 모든 feature:presentation 이 common:presentation 하나만 참조하면
     // Compose / lifecycle / Hilt 진입점이 함께 딸려오도록 api 로 노출한다.
     api(project(":common:domain"))
+
+    // NavigationHelperImpl · LocalNavigationHelper 가 계약을 그대로 내보낸다.
+    api(project(":common:navigation"))
 
     api(libs.androidx.core.ktx)
     api(libs.androidx.lifecycle.runtime.ktx)
@@ -57,6 +63,10 @@ dependencies {
     debugImplementation(libs.androidx.compose.ui.tooling)
 
     // Hilt
+    // 이미지 로딩. 카드 · 상세가 같은 컴포넌트를 쓰므로 여기서 한 번만 붙인다.
+    api(libs.coil.compose)
+    implementation(libs.coil.network.okhttp)
+
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
     api(libs.androidx.hilt.navigation.compose)

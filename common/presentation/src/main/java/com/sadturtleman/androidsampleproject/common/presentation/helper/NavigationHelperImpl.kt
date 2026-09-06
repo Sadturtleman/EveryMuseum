@@ -2,10 +2,10 @@ package com.sadturtleman.androidsampleproject.common.presentation.helper
 
 import android.util.Log
 import androidx.compose.runtime.compositionLocalOf
-import com.sadturtleman.androidsampleproject.common.domain.helper.NavigationHelper
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavRoute
-import com.sadturtleman.androidsampleproject.common.domain.navigation.NavSignal
-import com.sadturtleman.androidsampleproject.common.domain.navigation.Page
+import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
+import com.sadturtleman.androidsampleproject.common.navigation.NavRoute
+import com.sadturtleman.androidsampleproject.common.navigation.NavSignal
+import com.sadturtleman.androidsampleproject.common.navigation.Page
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.receiveAsFlow
