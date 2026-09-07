@@ -1,0 +1,409 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "EveryMuseum 모듈 아키텍처",
+    "output": "../architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1320,
+      740
+    ],
+    "repository": {
+      "url": "https://github.com/Sadturtleman/EveryMuseum",
+      "revision": "aa109b8b963fc9d9bd5ede2d619864fdc3d3c580"
+    },
+    "views": [
+      {
+        "id": "request-path",
+        "label": "주요 요청 경로",
+        "focus": [
+          "app",
+          "featurePresentation",
+          "featureDomain",
+          "featureData",
+          "network",
+          "emuseum"
+        ],
+        "note": "화면 진입에서 e뮤지엄 Open API 까지, 한 요청이 지나는 길."
+      },
+      {
+        "id": "shared-layer",
+        "label": "공통 레이어",
+        "focus": [
+          "commonPresentation",
+          "featurePresentation",
+          "serviceKey",
+          "network",
+          "datastore"
+        ],
+        "note": "모든 feature 가 함께 쓰는 디자인 시스템 · 통신 스택 · 로컬 저장."
+      },
+      {
+        "id": "tti",
+        "label": "TTI 계측",
+        "focus": [
+          "featurePresentation",
+          "ttiPresentation",
+          "ttiDomain",
+          "ttiData"
+        ],
+        "note": "화면이 쓸 수 있는 상태가 되기까지를 재는 계측 모듈."
+      }
+    ]
+  },
+  "components": [
+    {
+      "id": "app",
+      "type": "frontend",
+      "label": ":app",
+      "sublabel": "Navigation 3 호스트",
+      "tag": "Hilt 진입점",
+      "pos": [
+        30,
+        250
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "app/src/main/java/com/sadturtleman/androidsampleproject/navigation/AppNavHost.kt",
+          "label": "라우팅 테이블"
+        }
+      ]
+    },
+    {
+      "id": "commonPresentation",
+      "type": "frontend",
+      "label": ":common:presentation",
+      "sublabel": "디자인 시스템 · MVI 베이스",
+      "pos": [
+        250,
+        90
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "common/presentation/src/main/java/com/sadturtleman/androidsampleproject/common/presentation/mvi/MviViewModel.kt",
+          "label": "MviViewModel"
+        }
+      ]
+    },
+    {
+      "id": "featurePresentation",
+      "type": "frontend",
+      "label": "feature:presentation",
+      "sublabel": "home·search·detail·store",
+      "tag": "Compose + ViewModel",
+      "pos": [
+        250,
+        250
+      ],
+      "size": [
+        160,
+        68
+      ]
+    },
+    {
+      "id": "featureDomain",
+      "type": "backend",
+      "label": "feature:domain",
+      "sublabel": "UseCase · Repository 계약",
+      "tag": "순수 코틀린",
+      "pos": [
+        470,
+        250
+      ],
+      "size": [
+        160,
+        68
+      ]
+    },
+    {
+      "id": "featureData",
+      "type": "backend",
+      "label": "feature:data",
+      "sublabel": "Repository 구현 · Mapper",
+      "pos": [
+        690,
+        250
+      ],
+      "size": [
+        160,
+        68
+      ]
+    },
+    {
+      "id": "serviceKey",
+      "type": "security",
+      "label": "ServiceKeyInterceptor",
+      "sublabel": "인증키를 요청마다 주입",
+      "tag": "BuildConfig",
+      "pos": [
+        910,
+        90
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "common/network/src/main/java/com/sadturtleman/androidsampleproject/common/network/ServiceKeyInterceptor.kt"
+        }
+      ]
+    },
+    {
+      "id": "network",
+      "type": "backend",
+      "label": ":common:network",
+      "sublabel": "Retrofit · OkHttp · XML 변환",
+      "pos": [
+        910,
+        250
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "common/network/src/main/java/com/sadturtleman/androidsampleproject/common/network/EmuseumNetworkModule.kt"
+        }
+      ]
+    },
+    {
+      "id": "emuseum",
+      "type": "external",
+      "label": "e뮤지엄 Open API",
+      "sublabel": "apis.data.go.kr",
+      "tag": "XML 응답",
+      "pos": [
+        1130,
+        250
+      ],
+      "size": [
+        160,
+        68
+      ]
+    },
+    {
+      "id": "datastore",
+      "type": "database",
+      "label": ":common:datastore",
+      "sublabel": "Preferences DataStore",
+      "pos": [
+        690,
+        430
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "store/data/src/main/java/com/sadturtleman/androidsampleproject/store/data/local/SavedRelicKVStorage.kt",
+          "label": "보관함 저장"
+        }
+      ]
+    },
+    {
+      "id": "ttiPresentation",
+      "type": "frontend",
+      "label": ":tti:presentation",
+      "sublabel": "TtiPage · 구간 Effect",
+      "pos": [
+        250,
+        600
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "tti/presentation/src/main/java/com/sadturtleman/androidsampleproject/tti/presentation/TtiCompose.kt"
+        }
+      ]
+    },
+    {
+      "id": "ttiDomain",
+      "type": "backend",
+      "label": ":tti:domain",
+      "sublabel": "네 구간 정의 · 기록기",
+      "tag": "안드로이드 의존 0",
+      "pos": [
+        470,
+        600
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "tti/domain/src/main/java/com/sadturtleman/androidsampleproject/tti/domain/TtiRecorderImpl.kt"
+        }
+      ]
+    },
+    {
+      "id": "ttiData",
+      "type": "database",
+      "label": ":tti:data",
+      "sublabel": "Room tti.db · SystemClock",
+      "pos": [
+        690,
+        600
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "tti/data/src/main/java/com/sadturtleman/androidsampleproject/tti/data/RoomTtiRecordStore.kt"
+        }
+      ]
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": ":tti — 앱 전체를 가로지르는 계측",
+      "wraps": [
+        "ttiPresentation",
+        "ttiDomain",
+        "ttiData"
+      ]
+    }
+  ],
+  "connections": [
+    {
+      "id": "route",
+      "from": "app",
+      "to": "featurePresentation",
+      "label": "라우팅 · 화면 진입",
+      "variant": "emphasis",
+      "labelDy": -28
+    },
+    {
+      "id": "useCase",
+      "from": "featurePresentation",
+      "to": "featureDomain",
+      "label": "UseCase 호출",
+      "variant": "emphasis",
+      "labelDy": -28
+    },
+    {
+      "id": "repoContract",
+      "from": "featureDomain",
+      "to": "featureData",
+      "label": "Repository 구현",
+      "variant": "emphasis",
+      "labelDy": -28
+    },
+    {
+      "id": "apiCall",
+      "from": "featureData",
+      "to": "network",
+      "label": "Retrofit 요청",
+      "variant": "emphasis",
+      "labelDy": -28
+    },
+    {
+      "id": "https",
+      "from": "network",
+      "to": "emuseum",
+      "label": "HTTPS",
+      "variant": "emphasis",
+      "labelDy": -28
+    },
+    {
+      "id": "designSystem",
+      "from": "commonPresentation",
+      "to": "featurePresentation",
+      "label": "MVI 베이스 · 컴포넌트",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 57
+    },
+    {
+      "id": "keyInject",
+      "from": "serviceKey",
+      "to": "network",
+      "label": "인증키 주입",
+      "variant": "security",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 57
+    },
+    {
+      "id": "savedIds",
+      "from": "featureData",
+      "to": "datastore",
+      "label": "보관함 id 저장",
+      "variant": "dashed",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 67
+    },
+    {
+      "id": "measure",
+      "from": "featurePresentation",
+      "to": "ttiPresentation",
+      "label": "구간 열기 · 닫기",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 154
+    },
+    {
+      "id": "recorder",
+      "from": "ttiPresentation",
+      "to": "ttiDomain",
+      "label": "TtiRecorder",
+      "labelDy": -28
+    },
+    {
+      "id": "ports",
+      "from": "ttiDomain",
+      "to": "ttiData",
+      "label": "저장 · 시각 포트",
+      "labelDy": -28
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "화면",
+      "items": [
+        ":app 이 Navigation 3 로 다섯 라우트를 한곳에서 라우팅한다",
+        "feature:presentation 은 MVI — 입력은 Intent 하나, 출력은 UiState 하나",
+        ":common:presentation 이 디자인 시스템과 MviViewModel 을 공급한다"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "도메인 · 데이터",
+      "items": [
+        "feature:domain 은 순수 코틀린 — UseCase 와 Repository 계약만 둔다",
+        "feature:data 가 그 계약을 구현하고 응답을 도메인 모양으로 옮긴다",
+        "통신 스택은 :common:network 하나이고 엔드포인트는 각 data 모듈이 정한다"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "계측",
+      "items": [
+        ":tti:domain 은 안드로이드 의존이 없다 — 시각과 저장을 포트로 둔다",
+        ":tti:data 가 Room 과 SystemClock 구현을 꽂고 Hilt 로 바인딩한다",
+        "화면은 :tti:presentation 의 Effect 로 구간만 열고 닫는다"
+      ]
+    }
+  ]
+}
