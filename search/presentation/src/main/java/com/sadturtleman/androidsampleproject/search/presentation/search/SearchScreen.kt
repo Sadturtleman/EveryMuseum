@@ -19,6 +19,10 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.preview.PREV
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.EveryMuseumTheme
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
 import com.sadturtleman.androidsampleproject.search.presentation.component.SearchTopBar
+import com.sadturtleman.androidsampleproject.tti.domain.TtiTimeline
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiDrawnEffect
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiEmptySpanEffect
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiSpanEffect
 
 /**
  * 검색 라우트의 진입점.
@@ -32,6 +36,11 @@ fun SearchScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // TTI 계측. 최근 검색어 · 색인어 · 코드 목록뿐이라 뒤늦게 채워지는 큰 덩어리가 없다.
+    TtiSpanEffect(TtiTimeline.BACKEND, running = state is SearchUiState.Loading)
+    TtiDrawnEffect(ready = state is SearchUiState.Success)
+    TtiEmptySpanEffect(TtiTimeline.BIG_PART_LOADING)
 
     SearchView(
         state = state,

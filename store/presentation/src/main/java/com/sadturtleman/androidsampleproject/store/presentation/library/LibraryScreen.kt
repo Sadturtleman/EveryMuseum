@@ -28,6 +28,10 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.model.Artifa
 import com.sadturtleman.androidsampleproject.common.presentation.ui.preview.PREVIEW_DEVICE
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.EveryMuseumTheme
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
+import com.sadturtleman.androidsampleproject.tti.domain.TtiTimeline
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiDrawnEffect
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiEmptySpanEffect
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiSpanEffect
 
 /**
  * 보관함 라우트(`StorePage.PATH`)의 진입점.
@@ -41,6 +45,12 @@ fun LibraryScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // TTI 계측. 목록의 썸네일은 화면을 대표하는 한 장이 아니라 큰 덩어리로 잡지 않는다
+    // (먼저 끝난 한 장이 구간을 닫아 나머지가 아직 내려오는 중인데도 다 그려진 것으로 기록된다).
+    TtiSpanEffect(TtiTimeline.BACKEND, running = state is LibraryUiState.Loading)
+    TtiDrawnEffect(ready = state is LibraryUiState.Success)
+    TtiEmptySpanEffect(TtiTimeline.BIG_PART_LOADING)
 
     LibraryView(
         state = state,

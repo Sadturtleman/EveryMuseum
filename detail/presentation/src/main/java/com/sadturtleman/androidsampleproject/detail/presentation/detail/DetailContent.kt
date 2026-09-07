@@ -202,7 +202,8 @@ private fun DetailHero(
                 .offset(y = HERO_SILHOUETTE_OFFSET_Y)
                 .size(HERO_SILHOUETTE_SIZE),
             type = type,
-            image = { ArtifactImage(imageUrl, contentDescription) },
+            // 화면을 대표하는 사진 한 장이라 여기서만 큰 덩어리 로딩을 잰다.
+            image = { ArtifactImage(imageUrl, contentDescription, measureTti = true) },
         )
 
         Box(

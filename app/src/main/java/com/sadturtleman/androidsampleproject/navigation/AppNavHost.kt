@@ -16,6 +16,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.sadturtleman.androidsampleproject.common.navigation.NavRoute
 import com.sadturtleman.androidsampleproject.common.navigation.NavSignal
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalNavigationHelper
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiPage
 import com.sadturtleman.androidsampleproject.home.navigation.HomePage
 
 /**
@@ -65,7 +66,11 @@ fun AppNavHost(
                     }
                     return@entry
                 }
-                route.render(navKey.args)
+                // 화면 하나의 TTI 측정은 여기서 열린다.
+                // ViewModel 생성이 render 안에서 일어나므로 VIEW_CREATE 를 덮으려면 이 바깥이어야 한다.
+                TtiPage(pageName = route.path) {
+                    route.render(navKey.args)
+                }
             }
         },
     )

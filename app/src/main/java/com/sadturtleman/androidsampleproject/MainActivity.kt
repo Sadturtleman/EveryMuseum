@@ -10,6 +10,8 @@ import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
 import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalMessageHelper
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalNavigationHelper
+import com.sadturtleman.androidsampleproject.tti.domain.TtiRecorder
+import com.sadturtleman.androidsampleproject.tti.presentation.LocalTtiRecorder
 import com.sadturtleman.androidsampleproject.deeplink.resolveNewIntentRoute
 import com.sadturtleman.androidsampleproject.deeplink.resolveStartStack
 import com.sadturtleman.androidsampleproject.navigation.RootComposable
@@ -30,6 +32,10 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var messageHelper: MessageHelper
 
+    /** TTI 기록기. 화면 계측은 전부 컴포지션에서 일어나므로 트리에 꽂아 준다. */
+    @Inject
+    lateinit var ttiRecorder: TtiRecorder
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -41,6 +47,7 @@ class MainActivity : ComponentActivity() {
             CompositionLocalProvider(
                 LocalNavigationHelper provides navigationHelper,
                 LocalMessageHelper provides messageHelper,
+                LocalTtiRecorder provides ttiRecorder,
             ) {
                 RootComposable(startStack = startStack)
             }

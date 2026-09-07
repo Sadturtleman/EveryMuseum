@@ -58,6 +58,13 @@ dependencies {
     implementation(project(":common:di"))
     implementation(project(":common:navigation"))
 
+    // 화면 진입 시간 계측. Application 이 init · destroy 를 잡는다.
+    // domain 은 계약(TtiRecorder · PrintTtiShooter), data 는 Hilt 바인딩,
+    // presentation 은 라우팅 테이블이 화면을 감싸는 TtiPage 때문에 필요하다.
+    implementation(project(":tti:domain"))
+    implementation(project(":tti:data"))
+    implementation(project(":tti:presentation"))
+
     implementation(project(":home:presentation"))
     implementation(project(":home:navigation"))
     implementation(project(":home:domain"))
@@ -83,6 +90,8 @@ dependencies {
     implementation(project(":store:entity"))
 
     implementation(libs.androidx.activity.compose)
+    // 앱이 앞/뒤로 오갈 때를 TTI 기록기의 init · destroy 신호로 쓴다.
+    implementation(libs.androidx.lifecycle.process)
 
     // Navigation 3. 백스택 · 라우팅 테이블이 이 모듈에 있다.
     implementation(libs.androidx.navigation3.runtime)

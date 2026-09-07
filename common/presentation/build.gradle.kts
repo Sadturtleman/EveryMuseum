@@ -50,6 +50,10 @@ dependencies {
     // NavigationHelperImpl · LocalNavigationHelper 가 계약을 그대로 내보낸다.
     api(project(":common:navigation"))
 
+    // 이미지 로딩 구간을 재는 helper. 화면이 그대로 쓰므로 api 로 내보낸다.
+    // (:tti:domain 은 여기에 api 로 딸려 온다 — 화면이 TtiTimeline 을 직접 넘긴다)
+    api(project(":tti:presentation"))
+
     api(libs.androidx.core.ktx)
     api(libs.androidx.lifecycle.runtime.ktx)
     api(libs.androidx.lifecycle.runtime.compose)
