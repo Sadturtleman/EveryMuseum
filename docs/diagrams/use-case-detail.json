@@ -1,0 +1,281 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "소장품 상세 조회 · 주요 경로",
+    "output": "../use-case-detail.html",
+    "quality_profile": "showcase",
+    "viewBox": [
+      1080,
+      610
+    ],
+    "views": [
+      {
+        "id": "intent",
+        "label": "화면 진입",
+        "focus": [
+          "user",
+          "screen",
+          "viewModel",
+          "tti"
+        ],
+        "note": "탭 한 번이 Intent 하나로 들어가고, 그 자리에서 계측이 열린다."
+      },
+      {
+        "id": "fetch",
+        "label": "조회",
+        "focus": [
+          "viewModel",
+          "useCase",
+          "repository",
+          "emuseum"
+        ],
+        "note": "UseCase → Repository 계약 → Retrofit 순서로 한 겹씩만 내려간다."
+      },
+      {
+        "id": "render",
+        "label": "그리기 · 계측 완료",
+        "focus": [
+          "viewModel",
+          "screen",
+          "tti",
+          "user"
+        ],
+        "note": "상태가 화면에 실려 그려진 뒤에야 네 구간이 완성된다."
+      }
+    ],
+    "column_fit": "spread"
+  },
+  "participants": [
+    {
+      "id": "user",
+      "type": "external",
+      "label": "사용자",
+      "sublabel": "카드 탭"
+    },
+    {
+      "id": "screen",
+      "type": "frontend",
+      "label": "DetailScreen",
+      "sublabel": "Compose"
+    },
+    {
+      "id": "viewModel",
+      "type": "frontend",
+      "label": "DetailViewModel",
+      "sublabel": "MVI"
+    },
+    {
+      "id": "useCase",
+      "type": "backend",
+      "label": "GetRelicDetail",
+      "sublabel": ":detail:domain"
+    },
+    {
+      "id": "repository",
+      "type": "backend",
+      "label": "RepositoryImpl",
+      "sublabel": ":detail:data"
+    },
+    {
+      "id": "emuseum",
+      "type": "external",
+      "label": "e뮤지엄 API",
+      "sublabel": "apis.data.go.kr"
+    },
+    {
+      "id": "tti",
+      "type": "messagebus",
+      "label": "TTI 기록기",
+      "sublabel": "IO 에서 비동기"
+    }
+  ],
+  "segments": [
+    {
+      "from": 160,
+      "to": 284,
+      "label": "화면 진입"
+    },
+    {
+      "from": 290,
+      "to": 392,
+      "label": "조회"
+    },
+    {
+      "from": 398,
+      "to": 540,
+      "label": "그리기 · 계측 완료"
+    }
+  ],
+  "messages": [
+    {
+      "id": "tap",
+      "from": "user",
+      "to": "screen",
+      "y": 186,
+      "label": "상세 카드 탭",
+      "variant": "default"
+    },
+    {
+      "id": "openViewCreate",
+      "from": "screen",
+      "to": "tti",
+      "y": 214,
+      "label": "VIEW_CREATE 구간 열기",
+      "variant": "dashed",
+      "note": "라우팅 테이블의 TtiPage 가 화면을 감싸므로 ViewModel 생성부터 덮인다"
+    },
+    {
+      "id": "loadIntent",
+      "from": "screen",
+      "to": "viewModel",
+      "y": 242,
+      "label": "DetailIntent.Load(id)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "openBackend",
+      "from": "viewModel",
+      "to": "tti",
+      "y": 270,
+      "label": "BACKEND 구간 열기",
+      "variant": "dashed",
+      "note": "화면이 보는 신호는 state is Loading 하나다"
+    },
+    {
+      "id": "callUseCase",
+      "from": "viewModel",
+      "to": "useCase",
+      "y": 298,
+      "label": "GetRelicDetailUseCase",
+      "variant": "emphasis"
+    },
+    {
+      "id": "callRepo",
+      "from": "useCase",
+      "to": "repository",
+      "y": 326,
+      "label": "RelicDetailRepository",
+      "variant": "emphasis"
+    },
+    {
+      "id": "httpGet",
+      "from": "repository",
+      "to": "emuseum",
+      "y": 354,
+      "label": "GET /openapi/detail?id=",
+      "variant": "security",
+      "note": "ServiceKeyInterceptor 가 인증키를 요청마다 붙인다"
+    },
+    {
+      "id": "xml",
+      "from": "emuseum",
+      "to": "repository",
+      "y": 382,
+      "label": "XML 응답",
+      "variant": "return"
+    },
+    {
+      "id": "mapped",
+      "from": "repository",
+      "to": "useCase",
+      "y": 410,
+      "label": "도메인 모델로 매핑",
+      "variant": "return"
+    },
+    {
+      "id": "toVm",
+      "from": "useCase",
+      "to": "viewModel",
+      "y": 438,
+      "label": "상세 데이터",
+      "variant": "return"
+    },
+    {
+      "id": "success",
+      "from": "viewModel",
+      "to": "screen",
+      "y": 466,
+      "label": "UiState.Success",
+      "variant": "return"
+    },
+    {
+      "id": "drawn",
+      "from": "screen",
+      "to": "tti",
+      "y": 494,
+      "label": "VIEW_BINDING · 사진 로딩",
+      "variant": "dashed",
+      "note": "프레임이 실제로 그려지고 히어로 사진까지 끝나야 네 구간이 완성된다"
+    },
+    {
+      "id": "render",
+      "from": "screen",
+      "to": "user",
+      "y": 522,
+      "label": "상세 화면 표시",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "screen",
+      "from": 181,
+      "to": 528,
+      "type": "frontend"
+    },
+    {
+      "participant": "viewModel",
+      "from": 236,
+      "to": 500,
+      "type": "frontend"
+    },
+    {
+      "participant": "useCase",
+      "from": 293,
+      "to": 444,
+      "type": "backend"
+    },
+    {
+      "participant": "repository",
+      "from": 321,
+      "to": 416,
+      "type": "backend"
+    },
+    {
+      "participant": "emuseum",
+      "from": 349,
+      "to": 388,
+      "type": "external"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "emerald",
+      "title": "주요 경로",
+      "items": [
+        "화면은 Intent 하나만 올리고 UiState 하나만 받는다",
+        "ViewModel 은 UseCase 만, UseCase 는 Repository 계약만 안다",
+        "라우트 인자도 생성자가 아니라 Intent 로 들어간다"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "통신",
+      "items": [
+        "인증키는 ServiceKeyInterceptor 가 붙인다",
+        "응답은 XML — 전용 컨버터가 파싱한다",
+        "없는 id 면 화면은 에러 상태로 떨어진다"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "계측",
+      "items": [
+        "기록 호출은 시각만 찍고 즉시 돌아간다",
+        "네 구간이 모두 닫힌 기록만 나간다",
+        "사진이 늦으면 앱이 내려갈 때 보낸다"
+      ]
+    }
+  ]
+}
