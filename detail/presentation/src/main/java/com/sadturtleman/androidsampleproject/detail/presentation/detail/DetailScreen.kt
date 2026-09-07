@@ -20,6 +20,9 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.model.Artifa
 import com.sadturtleman.androidsampleproject.common.presentation.ui.preview.PREVIEW_DEVICE
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.EveryMuseumTheme
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
+import com.sadturtleman.androidsampleproject.tti.domain.TtiTimeline
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiDrawnEffect
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiSpanEffect
 
 /**
  * 상세 라우트의 진입점.
@@ -37,6 +40,11 @@ fun DetailScreen(
 
     // 라우트 인자는 생성자가 아니라 인텐트로 들어간다. ViewModel 이 두 번째부터는 무시한다.
     LaunchedEffect(relicId) { viewModel.onIntent(DetailIntent.Load(relicId)) }
+
+    // TTI 계측. 화면이 보는 요청 구간은 로딩 상태가 열려 있는 동안이고,
+    // 그리기 구간은 데이터가 상태에 들어온 뒤 그 프레임이 그려질 때까지다.
+    TtiSpanEffect(TtiTimeline.BACKEND, running = state is DetailUiState.Loading)
+    TtiDrawnEffect(ready = state is DetailUiState.Success)
 
     DetailView(
         state = state,

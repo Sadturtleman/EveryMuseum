@@ -19,6 +19,10 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.model.Artifa
 import com.sadturtleman.androidsampleproject.common.presentation.ui.preview.PREVIEW_DEVICE
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.EveryMuseumTheme
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
+import com.sadturtleman.androidsampleproject.tti.domain.TtiTimeline
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiDrawnEffect
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiEmptySpanEffect
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiSpanEffect
 
 /**
  * 홈 라우트의 진입점.
@@ -33,6 +37,15 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
 ) {
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // TTI 계측. 큰 덩어리는 히어로 사진이고, 그것을 재는 곳은 HomeContent 의 ArtifactImage 다.
+    TtiSpanEffect(TtiTimeline.BACKEND, running = state is HomeUiState.Loading)
+    TtiDrawnEffect(ready = state is HomeUiState.Success)
+    // 히어로가 없거나 사진이 없는 성공 상태에서는 그 ArtifactImage 가 그려지지 않는다.
+    val hero = (state as? HomeUiState.Success)?.hero
+    if (state is HomeUiState.Success && hero?.imageUrl.isNullOrBlank()) {
+        TtiEmptySpanEffect(TtiTimeline.BIG_PART_LOADING)
+    }
 
     HomeView(
         state = state,

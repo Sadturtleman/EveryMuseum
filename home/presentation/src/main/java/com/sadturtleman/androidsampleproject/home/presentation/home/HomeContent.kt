@@ -174,7 +174,8 @@ private fun HomeHeroCard(
             .debouncedClickable(onClick = onClick),
     ) {
         // 제목이 바로 아래 글자로 읽히므로 사진에는 설명을 달지 않는다.
-        ArtifactImage(url = hero.imageUrl)
+        // 화면을 대표하는 사진 한 장이라 여기서만 큰 덩어리 로딩을 잰다.
+        ArtifactImage(url = hero.imageUrl, measureTti = true)
 
         Box(
             modifier = Modifier

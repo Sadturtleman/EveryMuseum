@@ -35,6 +35,13 @@ include(":common:datastore")
 include(":common:di")
 include(":common:navigation")
 
+// 화면 진입 시간(TTI) 계측. 어느 feature 에도 속하지 않고 앱 전체를 가로지른다.
+// domain 은 순수 코틀린이다 — 무엇을 언제 재는지는 플랫폼과 무관해야 하므로
+// 시각(TtiClock) 과 저장(TtiRecordStore) 을 포트로 두고 data 가 안드로이드 구현을 꽂는다.
+include(":tti:domain")
+include(":tti:data")
+include(":tti:presentation")
+
 // 네비게이션 호스트. 각 feature 의 화면을 라우팅 테이블 한 곳에 모은다.
 include(":home:navigation")
 include(":home:presentation")

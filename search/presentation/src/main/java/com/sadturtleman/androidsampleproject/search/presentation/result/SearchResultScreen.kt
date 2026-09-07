@@ -35,6 +35,10 @@ import com.sadturtleman.androidsampleproject.search.presentation.filter.FilterIn
 import com.sadturtleman.androidsampleproject.search.presentation.filter.FilterView
 import com.sadturtleman.androidsampleproject.search.presentation.filter.FilterViewModel
 import com.sadturtleman.androidsampleproject.search.presentation.filter.appliedFilters
+import com.sadturtleman.androidsampleproject.tti.domain.TtiTimeline
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiDrawnEffect
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiEmptySpanEffect
+import com.sadturtleman.androidsampleproject.tti.presentation.TtiSpanEffect
 import kotlinx.coroutines.flow.flowOf
 
 /**
@@ -61,9 +65,18 @@ fun SearchResultScreen(
         viewModel.onIntent(SearchResultIntent.Load(query, filterTabCode))
     }
 
+    val items = viewModel.items.collectAsLazyPagingItems()
+
+    // TTI 계측. 이 화면에서 요청이 끝난 시점을 아는 것은 UiState 가 아니라 Paging 의 첫 페이지 상태다.
+    // 목록의 썸네일은 화면을 대표하는 한 장이 아니라 큰 덩어리로 잡지 않는다.
+    val refresh = items.loadState.refresh
+    TtiSpanEffect(TtiTimeline.BACKEND, running = refresh is LoadState.Loading)
+    TtiDrawnEffect(ready = refresh is LoadState.NotLoading)
+    TtiEmptySpanEffect(TtiTimeline.BIG_PART_LOADING)
+
     SearchResultView(
         state = state,
-        items = viewModel.items.collectAsLazyPagingItems(),
+        items = items,
         onIntent = viewModel::onIntent,
         modifier = modifier,
     )
