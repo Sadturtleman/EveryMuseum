@@ -6,8 +6,8 @@
     "output": "../use-case-detail.html",
     "quality_profile": "showcase",
     "viewBox": [
-      1080,
-      610
+      1240,
+      680
     ],
     "views": [
       {
@@ -19,7 +19,7 @@
           "viewModel",
           "tti"
         ],
-        "note": "탭 한 번이 Intent 하나로 들어가고, 그 자리에서 계측이 열린다."
+        "note": "탭 한 번이 Intent 로 들어가고, 첫 컴포지션이 끝나는 자리에서 VIEW_CREATE 가 닫힌다."
       },
       {
         "id": "fetch",
@@ -50,61 +50,54 @@
     {
       "id": "user",
       "type": "external",
-      "label": "사용자",
-      "sublabel": "카드 탭"
+      "label": "사용자"
     },
     {
       "id": "screen",
       "type": "frontend",
-      "label": "DetailScreen",
-      "sublabel": "Compose"
+      "label": "DetailScreen"
     },
     {
       "id": "viewModel",
       "type": "frontend",
-      "label": "DetailViewModel",
-      "sublabel": "MVI"
+      "label": "DetailViewModel"
     },
     {
       "id": "useCase",
       "type": "backend",
-      "label": "GetRelicDetail",
-      "sublabel": ":detail:domain"
+      "label": "GetRelicDetail"
     },
     {
       "id": "repository",
       "type": "backend",
-      "label": "RepositoryImpl",
-      "sublabel": ":detail:data"
+      "label": "RepositoryImpl"
     },
     {
       "id": "emuseum",
       "type": "external",
-      "label": "e뮤지엄 API",
-      "sublabel": "apis.data.go.kr"
+      "label": "e뮤지엄 API"
     },
     {
       "id": "tti",
       "type": "messagebus",
-      "label": "TTI 기록기",
-      "sublabel": "IO 에서 비동기"
+      "label": "TTI 기록기"
     }
   ],
   "segments": [
     {
       "from": 160,
       "to": 284,
-      "label": "화면 진입"
+      "label": "첫 컴포지션 — VIEW_CREATE"
     },
     {
       "from": 290,
-      "to": 392,
-      "label": "조회"
+      "to": 452,
+      "label": "조회 — BACKEND"
     },
     {
-      "from": 398,
-      "to": 540,
-      "label": "그리기 · 계측 완료"
+      "from": 458,
+      "to": 600,
+      "label": "그리기 — VIEW_BINDING"
     }
   ],
   "messages": [
@@ -121,24 +114,42 @@
       "from": "screen",
       "to": "tti",
       "y": 214,
-      "label": "VIEW_CREATE 구간 열기",
+      "label": "VIEW_CREATE 열기",
       "variant": "dashed",
       "note": "라우팅 테이블의 TtiPage 가 화면을 감싸므로 ViewModel 생성부터 덮인다"
+    },
+    {
+      "id": "compose",
+      "from": "screen",
+      "to": "viewModel",
+      "y": 242,
+      "label": "ViewModel 생성 · 화면 컴포즈",
+      "variant": "emphasis"
+    },
+    {
+      "id": "closeViewCreate",
+      "from": "screen",
+      "to": "tti",
+      "y": 270,
+      "label": "VIEW_CREATE 닫기",
+      "variant": "dashed",
+      "note": "첫 컴포지션이 끝나는 그 자리에서 닫힌다 — 이 구간은 여기까지다"
     },
     {
       "id": "loadIntent",
       "from": "screen",
       "to": "viewModel",
-      "y": 242,
+      "y": 298,
       "label": "DetailIntent.Load(id)",
-      "variant": "emphasis"
+      "variant": "emphasis",
+      "note": "LaunchedEffect 라 컴포지션이 끝난 뒤에 돈다"
     },
     {
       "id": "openBackend",
       "from": "viewModel",
       "to": "tti",
-      "y": 270,
-      "label": "BACKEND 구간 열기",
+      "y": 326,
+      "label": "BACKEND 열기",
       "variant": "dashed",
       "note": "화면이 보는 신호는 state is Loading 하나다"
     },
@@ -146,7 +157,7 @@
       "id": "callUseCase",
       "from": "viewModel",
       "to": "useCase",
-      "y": 298,
+      "y": 354,
       "label": "GetRelicDetailUseCase",
       "variant": "emphasis"
     },
@@ -154,7 +165,7 @@
       "id": "callRepo",
       "from": "useCase",
       "to": "repository",
-      "y": 326,
+      "y": 382,
       "label": "RelicDetailRepository",
       "variant": "emphasis"
     },
@@ -162,7 +173,7 @@
       "id": "httpGet",
       "from": "repository",
       "to": "emuseum",
-      "y": 354,
+      "y": 410,
       "label": "GET /openapi/detail?id=",
       "variant": "security",
       "note": "ServiceKeyInterceptor 가 인증키를 요청마다 붙인다"
@@ -171,7 +182,7 @@
       "id": "xml",
       "from": "emuseum",
       "to": "repository",
-      "y": 382,
+      "y": 438,
       "label": "XML 응답",
       "variant": "return"
     },
@@ -179,7 +190,7 @@
       "id": "mapped",
       "from": "repository",
       "to": "useCase",
-      "y": 410,
+      "y": 466,
       "label": "도메인 모델로 매핑",
       "variant": "return"
     },
@@ -187,7 +198,7 @@
       "id": "toVm",
       "from": "useCase",
       "to": "viewModel",
-      "y": 438,
+      "y": 494,
       "label": "상세 데이터",
       "variant": "return"
     },
@@ -195,7 +206,7 @@
       "id": "success",
       "from": "viewModel",
       "to": "screen",
-      "y": 466,
+      "y": 522,
       "label": "UiState.Success",
       "variant": "return"
     },
@@ -203,8 +214,8 @@
       "id": "drawn",
       "from": "screen",
       "to": "tti",
-      "y": 494,
-      "label": "VIEW_BINDING · 사진 로딩",
+      "y": 550,
+      "label": "BACKEND 닫기 · VIEW_BINDING",
       "variant": "dashed",
       "note": "프레임이 실제로 그려지고 히어로 사진까지 끝나야 네 구간이 완성된다"
     },
@@ -212,7 +223,7 @@
       "id": "render",
       "from": "screen",
       "to": "user",
-      "y": 522,
+      "y": 578,
       "label": "상세 화면 표시",
       "variant": "return"
     }
@@ -221,31 +232,31 @@
     {
       "participant": "screen",
       "from": 181,
-      "to": 528,
+      "to": 584,
       "type": "frontend"
     },
     {
       "participant": "viewModel",
-      "from": 236,
-      "to": 500,
+      "from": 237,
+      "to": 528,
       "type": "frontend"
     },
     {
       "participant": "useCase",
-      "from": 293,
-      "to": 444,
+      "from": 349,
+      "to": 500,
       "type": "backend"
     },
     {
       "participant": "repository",
-      "from": 321,
-      "to": 416,
+      "from": 377,
+      "to": 472,
       "type": "backend"
     },
     {
       "participant": "emuseum",
-      "from": 349,
-      "to": 388,
+      "from": 405,
+      "to": 444,
       "type": "external"
     }
   ],
@@ -254,9 +265,9 @@
       "dot": "emerald",
       "title": "주요 경로",
       "items": [
-        "화면은 Intent 하나만 올리고 UiState 하나만 받는다",
-        "ViewModel 은 UseCase 만, UseCase 는 Repository 계약만 안다",
-        "라우트 인자도 생성자가 아니라 Intent 로 들어간다"
+        "VIEW_CREATE 는 첫 컴포지션 한 번만 덮는다 — 전체를 감싸지 않는다",
+        "Load 와 BACKEND 는 LaunchedEffect 라 컴포지션이 끝난 뒤에 돈다",
+        "DetailViewModel → GetRelicDetail(:detail:domain) → RepositoryImpl(:detail:data)"
       ]
     },
     {

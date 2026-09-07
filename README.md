@@ -74,9 +74,17 @@ sequenceDiagram
     participant T as TTI 기록기
 
     U->>S: 상세 카드 탭
-    S-->>T: VIEW_CREATE 구간 열기
+
+    rect rgba(140,120,220,0.10)
+    Note over S,T: 첫 컴포지션 — VIEW_CREATE
+    S-->>T: VIEW_CREATE 열기
+    S->>VM: ViewModel 생성 · 화면 컴포즈
+    S-->>T: VIEW_CREATE 닫기
+    end
+
+    Note over S,VM: 컴포지션이 끝난 뒤 LaunchedEffect 가 돈다
     S->>VM: DetailIntent.Load(id)
-    VM-->>T: BACKEND 구간 열기
+    VM-->>T: BACKEND 열기
     VM->>UC: GetRelicDetailUseCase
     UC->>R: RelicDetailRepository
     R->>API: GET /openapi/detail?id=
@@ -84,7 +92,8 @@ sequenceDiagram
     R-->>UC: 도메인 모델로 매핑
     UC-->>VM: 상세 데이터
     VM-->>S: UiState.Success
-    S-->>T: VIEW_BINDING · 사진 로딩
+    S-->>T: BACKEND 닫기 · VIEW_BINDING 열기
+    S-->>T: 프레임 그려짐 → VIEW_BINDING 닫기
     S-->>U: 상세 화면 표시
 ```
 
