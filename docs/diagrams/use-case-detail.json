@@ -7,7 +7,7 @@
     "quality_profile": "showcase",
     "viewBox": [
       1240,
-      680
+      700
     ],
     "views": [
       {
@@ -17,7 +17,8 @@
           "user",
           "screen",
           "viewModel",
-          "tti"
+          "tti",
+          "bizLog"
         ],
         "note": "탭 한 번이 Intent 로 들어가고, 첫 컴포지션이 끝나는 자리에서 VIEW_CREATE 가 닫힌다."
       },
@@ -42,6 +43,16 @@
           "user"
         ],
         "note": "상태가 화면에 실려 그려진 뒤에야 네 구간이 완성된다."
+      },
+      {
+        "id": "events",
+        "label": "이벤트 로깅",
+        "focus": [
+          "screen",
+          "viewModel",
+          "bizLog"
+        ],
+        "note": "계측과 달리 구간이 없다 — 한 건을 남기면 그 자리에서 그대로 나간다."
       }
     ],
     "column_fit": "spread"
@@ -81,6 +92,11 @@
       "id": "tti",
       "type": "messagebus",
       "label": "TTI 기록기"
+    },
+    {
+      "id": "bizLog",
+      "type": "messagebus",
+      "label": "이벤트 기록기"
     }
   ],
   "segments": [
@@ -90,13 +106,13 @@
       "label": "첫 컴포지션 — VIEW_CREATE"
     },
     {
-      "from": 290,
-      "to": 452,
+      "from": 340,
+      "to": 480,
       "label": "조회 — BACKEND"
     },
     {
-      "from": 458,
-      "to": 600,
+      "from": 486,
+      "to": 620,
       "label": "그리기 — VIEW_BINDING"
     }
   ],
@@ -145,10 +161,19 @@
       "note": "LaunchedEffect 라 컴포지션이 끝난 뒤에 돈다"
     },
     {
+      "id": "relicOpen",
+      "from": "viewModel",
+      "to": "bizLog",
+      "y": 326,
+      "label": "relic_open{relicId}",
+      "variant": "dashed",
+      "note": "목록의 클릭이 아니라 여기서 남긴다 — 딥링크와 백스택 복원도 같이 잡힌다"
+    },
+    {
       "id": "openBackend",
       "from": "viewModel",
       "to": "tti",
-      "y": 326,
+      "y": 354,
       "label": "BACKEND 열기",
       "variant": "dashed",
       "note": "화면이 보는 신호는 state is Loading 하나다"
@@ -157,7 +182,7 @@
       "id": "callUseCase",
       "from": "viewModel",
       "to": "useCase",
-      "y": 354,
+      "y": 382,
       "label": "GetRelicDetailUseCase",
       "variant": "emphasis"
     },
@@ -165,7 +190,7 @@
       "id": "callRepo",
       "from": "useCase",
       "to": "repository",
-      "y": 382,
+      "y": 410,
       "label": "RelicDetailRepository",
       "variant": "emphasis"
     },
@@ -173,7 +198,7 @@
       "id": "httpGet",
       "from": "repository",
       "to": "emuseum",
-      "y": 410,
+      "y": 438,
       "label": "GET /openapi/detail?id=",
       "variant": "security",
       "note": "ServiceKeyInterceptor 가 인증키를 요청마다 붙인다"
@@ -182,7 +207,7 @@
       "id": "xml",
       "from": "emuseum",
       "to": "repository",
-      "y": 438,
+      "y": 466,
       "label": "XML 응답",
       "variant": "return"
     },
@@ -190,7 +215,7 @@
       "id": "mapped",
       "from": "repository",
       "to": "useCase",
-      "y": 466,
+      "y": 494,
       "label": "도메인 모델로 매핑",
       "variant": "return"
     },
@@ -198,7 +223,7 @@
       "id": "toVm",
       "from": "useCase",
       "to": "viewModel",
-      "y": 494,
+      "y": 522,
       "label": "상세 데이터",
       "variant": "return"
     },
@@ -206,7 +231,7 @@
       "id": "success",
       "from": "viewModel",
       "to": "screen",
-      "y": 522,
+      "y": 550,
       "label": "UiState.Success",
       "variant": "return"
     },
@@ -214,7 +239,7 @@
       "id": "drawn",
       "from": "screen",
       "to": "tti",
-      "y": 550,
+      "y": 578,
       "label": "BACKEND 닫기 · VIEW_BINDING",
       "variant": "dashed",
       "note": "프레임이 실제로 그려지고 히어로 사진까지 끝나야 네 구간이 완성된다"
@@ -223,7 +248,7 @@
       "id": "render",
       "from": "screen",
       "to": "user",
-      "y": 578,
+      "y": 606,
       "label": "상세 화면 표시",
       "variant": "return"
     }
@@ -232,31 +257,31 @@
     {
       "participant": "screen",
       "from": 181,
-      "to": 584,
+      "to": 612,
       "type": "frontend"
     },
     {
       "participant": "viewModel",
       "from": 237,
-      "to": 528,
+      "to": 556,
       "type": "frontend"
     },
     {
       "participant": "useCase",
-      "from": 349,
-      "to": 500,
+      "from": 377,
+      "to": 528,
       "type": "backend"
     },
     {
       "participant": "repository",
-      "from": 377,
-      "to": 472,
+      "from": 405,
+      "to": 500,
       "type": "backend"
     },
     {
       "participant": "emuseum",
-      "from": 405,
-      "to": 444,
+      "from": 433,
+      "to": 472,
       "type": "external"
     }
   ],
@@ -267,7 +292,7 @@
       "items": [
         "VIEW_CREATE 는 첫 컴포지션 한 번만 덮는다 — 전체를 감싸지 않는다",
         "Load 와 BACKEND 는 LaunchedEffect 라 컴포지션이 끝난 뒤에 돈다",
-        "DetailViewModel → GetRelicDetail(:detail:domain) → RepositoryImpl(:detail:data)"
+        "DetailViewModel → GetRelicDetail → RepositoryImpl"
       ]
     },
     {
@@ -281,11 +306,11 @@
     },
     {
       "dot": "violet",
-      "title": "계측",
+      "title": "계측 · 로깅",
       "items": [
-        "기록 호출은 시각만 찍고 즉시 돌아간다",
-        "네 구간이 모두 닫힌 기록만 나간다",
-        "사진이 늦으면 앱이 내려갈 때 보낸다"
+        "기록 호출은 시각만 찍고 즉시 돌아간다 — 두 모듈 다 같다",
+        "TTI 는 네 구간이 닫힌 기록만, 로깅은 한 건씩 그대로 내보낸다",
+        "화면 진입(view_enter)은 백스택을 쥔 :app 이 따로 남긴다"
       ]
     }
   ]
