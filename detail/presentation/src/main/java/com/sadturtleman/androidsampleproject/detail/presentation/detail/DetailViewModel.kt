@@ -14,6 +14,8 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.model.artifa
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.toArtifactUiModel
 import com.sadturtleman.androidsampleproject.detail.navigation.DetailPage
 import com.sadturtleman.androidsampleproject.detail.domain.GetRelicDetailUseCase
+import com.sadturtleman.androidsampleproject.logging.domain.BizEvent
+import com.sadturtleman.androidsampleproject.logging.domain.BizLogger
 import com.sadturtleman.androidsampleproject.search.navigation.SearchResultPage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.Job
@@ -40,6 +42,7 @@ class DetailViewModel @Inject constructor(
     private val toggleSavedRelic: ToggleSavedRelicUseCase,
     private val navigationHelper: NavigationHelper,
     private val messageHelper: MessageHelper,
+    private val bizLogger: BizLogger,
 ) : MviViewModel<DetailIntent, DetailUiState, DetailReducerEvent>(DetailUiState.Loading) {
 
     /** 저장 여부는 보관함 · 다른 화면에서도 바뀌므로 flow 로 계속 지켜본다. */
@@ -99,6 +102,8 @@ class DetailViewModel @Inject constructor(
     private fun load(id: String) {
         if (relicId != null) return
         relicId = id
+        // 목록의 클릭이 아니라 여기서 남긴다 — 딥링크나 백스택 복원으로 들어온 것도 같이 잡힌다.
+        bizLogger.record(DetailPage.PATH, BizEvent.RelicOpen(relicId = id))
         observeSaved(id)
         loadDetail()
     }
@@ -132,6 +137,8 @@ class DetailViewModel @Inject constructor(
         )
         viewModelScope.launch {
             val saved = toggleSavedRelic(relic)
+            // 토글 뒤의 상태를 남긴다. 담은 것과 뺀 것이 한 이벤트로 모인다.
+            bizLogger.record(DetailPage.PATH, BizEvent.SaveToggle(relicId = relic.id, saved = saved))
             messageHelper.showSavedToggleResult(saved) {
                 viewModelScope.launch { toggleSavedRelic(relic) }
             }

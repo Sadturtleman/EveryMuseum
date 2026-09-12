@@ -11,7 +11,7 @@
     ],
     "repository": {
       "url": "https://github.com/Sadturtleman/EveryMuseum",
-      "revision": "aa109b8b963fc9d9bd5ede2d619864fdc3d3c580"
+      "revision": "3739cd1c21ba2ceabc3c0888ce66096de0ec98ea"
     },
     "views": [
       {
@@ -49,6 +49,16 @@
           "ttiData"
         ],
         "note": "화면이 쓸 수 있는 상태가 되기까지를 재는 계측 모듈."
+      },
+      {
+        "id": "logging",
+        "label": "이벤트 로깅",
+        "focus": [
+          "featurePresentation",
+          "loggingDomain",
+          "loggingData"
+        ],
+        "note": "사용자가 무엇을 했는지를 한 건씩 남기는 모듈. 쌓아 두지 않고 그 자리에서 나간다."
       }
     ]
   },
@@ -218,7 +228,7 @@
       "label": ":tti:presentation",
       "sublabel": "TtiPage · 구간 Effect",
       "pos": [
-        250,
+        690,
         600
       ],
       "size": [
@@ -238,7 +248,7 @@
       "sublabel": "네 구간 정의 · 기록기",
       "tag": "안드로이드 의존 0",
       "pos": [
-        470,
+        910,
         600
       ],
       "size": [
@@ -257,7 +267,7 @@
       "label": ":tti:data",
       "sublabel": "Room tti.db · SystemClock",
       "pos": [
-        690,
+        1130,
         600
       ],
       "size": [
@@ -267,6 +277,50 @@
       "sources": [
         {
           "path": "tti/data/src/main/java/com/sadturtleman/androidsampleproject/tti/data/RoomTtiRecordStore.kt"
+        }
+      ]
+    },
+    {
+      "id": "loggingDomain",
+      "type": "backend",
+      "label": ":logging:domain",
+      "sublabel": "이벤트 카탈로그 · 기록기",
+      "tag": "안드로이드 의존 0",
+      "pos": [
+        30,
+        600
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "logging/domain/src/main/java/com/sadturtleman/androidsampleproject/logging/domain/BizEvent.kt",
+          "label": "남길 수 있는 이벤트"
+        },
+        {
+          "path": "logging/domain/src/main/java/com/sadturtleman/androidsampleproject/logging/domain/BizLoggerImpl.kt",
+          "label": "기록기"
+        }
+      ]
+    },
+    {
+      "id": "loggingData",
+      "type": "messagebus",
+      "label": ":logging:data",
+      "sublabel": "Hilt 조립 · 전송 구현",
+      "pos": [
+        250,
+        600
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "logging/data/src/main/java/com/sadturtleman/androidsampleproject/logging/data/PrintBizLogShooter.kt"
         }
       ]
     }
@@ -279,6 +333,14 @@
         "ttiPresentation",
         "ttiDomain",
         "ttiData"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": ":logging — 비즈니스 이벤트",
+      "wraps": [
+        "loggingDomain",
+        "loggingData"
       ]
     }
   ],
@@ -359,8 +421,7 @@
       "to": "ttiPresentation",
       "label": "구간 열기 · 닫기",
       "fromSide": "bottom",
-      "toSide": "top",
-      "labelDy": 154
+      "toSide": "top"
     },
     {
       "id": "recorder",
@@ -374,6 +435,21 @@
       "from": "ttiDomain",
       "to": "ttiData",
       "label": "저장 · 시각 포트",
+      "labelDy": -28
+    },
+    {
+      "id": "logEvent",
+      "from": "featurePresentation",
+      "to": "loggingDomain",
+      "label": "이벤트 기록",
+      "fromSide": "bottom",
+      "toSide": "top"
+    },
+    {
+      "id": "shooterPort",
+      "from": "loggingDomain",
+      "to": "loggingData",
+      "label": "전송 포트",
       "labelDy": -28
     }
   ],
@@ -398,11 +474,11 @@
     },
     {
       "dot": "violet",
-      "title": "계측",
+      "title": "계측 · 로깅",
       "items": [
-        ":tti:domain 은 안드로이드 의존이 없다 — 시각과 저장을 포트로 둔다",
-        ":tti:data 가 Room 과 SystemClock 구현을 꽂고 Hilt 로 바인딩한다",
-        "화면은 :tti:presentation 의 Effect 로 구간만 열고 닫는다"
+        ":tti:domain 도 :logging:domain 도 안드로이드 의존이 없다 — 전부 포트로 둔다",
+        "TTI 는 네 구간이 닫힌 기록만 쏘고, 로깅은 한 건이 그대로 한 번의 전송이다",
+        "BizEvent 는 sealed — 카탈로그에 없는 이벤트는 남길 수 없다"
       ]
     }
   ]

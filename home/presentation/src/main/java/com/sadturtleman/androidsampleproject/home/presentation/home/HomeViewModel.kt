@@ -14,6 +14,9 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.model.Artifa
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.toArtifactUiModel
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.toSavedRelicVO
 import com.sadturtleman.androidsampleproject.detail.navigation.DetailPage
+import com.sadturtleman.androidsampleproject.home.navigation.HomePage
+import com.sadturtleman.androidsampleproject.logging.domain.BizEvent
+import com.sadturtleman.androidsampleproject.logging.domain.BizLogger
 import com.sadturtleman.androidsampleproject.home.domain.GetHomeRelicsUseCase
 import com.sadturtleman.androidsampleproject.search.navigation.SearchPage
 import com.sadturtleman.androidsampleproject.search.navigation.SearchResultPage
@@ -44,6 +47,7 @@ class HomeViewModel @Inject constructor(
     private val toggleSavedRelic: ToggleSavedRelicUseCase,
     private val navigationHelper: NavigationHelper,
     private val messageHelper: MessageHelper,
+    private val bizLogger: BizLogger,
 ) : MviViewModel<HomeIntent, HomeUiState, HomeReducerEvent>(HomeUiState.Loading) {
 
     /** 저장 목록은 화면 밖(상세 · 보관함)에서도 바뀌므로 flow 로 계속 지켜본다. */
@@ -117,6 +121,7 @@ class HomeViewModel @Inject constructor(
     /** 되돌리기까지 같은 경로를 타므로 토글과 알림을 한 자리에 묶는다. */
     private suspend fun toggleAndNotify(relic: SavedRelicVO) {
         val saved = toggleSavedRelic(relic)
+        bizLogger.record(HomePage.PATH, BizEvent.SaveToggle(relicId = relic.id, saved = saved))
         messageHelper.showSavedToggleResult(saved) {
             viewModelScope.launch { toggleSavedRelic(relic) }
         }
@@ -125,6 +130,7 @@ class HomeViewModel @Inject constructor(
     private fun selectEra(era: EraChipUiModel) {
         if (selectedEra == era.code) return
         selectedEra = era.code
+        bizLogger.record(HomePage.PATH, BizEvent.EraSelect(eraCode = era.code))
         // 칩 선택은 즉시 보이고, 목록은 조회가 끝난 뒤 [HomeReducerEvent.Loaded] 로 교체된다.
         dispatch(HomeReducerEvent.EraSelected(era.code))
         loadHome(eraCode = era.code)

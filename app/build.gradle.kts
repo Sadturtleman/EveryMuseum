@@ -65,6 +65,11 @@ dependencies {
     implementation(project(":tti:data"))
     implementation(project(":tti:presentation"))
 
+    // 비즈니스 이벤트 로깅. TTI 와 마찬가지로 Application 이 init · destroy 를 잡는다.
+    // domain 은 계약(BizLogger · BizEvent), data 는 Hilt 조립과 전송 구현이다.
+    implementation(project(":logging:domain"))
+    implementation(project(":logging:data"))
+
     implementation(project(":home:presentation"))
     implementation(project(":home:navigation"))
     implementation(project(":home:domain"))

@@ -10,6 +10,8 @@ import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
 import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalMessageHelper
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalNavigationHelper
+import com.sadturtleman.androidsampleproject.logging.domain.BizLogger
+import com.sadturtleman.androidsampleproject.navigation.LocalBizLogger
 import com.sadturtleman.androidsampleproject.tti.domain.TtiRecorder
 import com.sadturtleman.androidsampleproject.tti.presentation.LocalTtiRecorder
 import com.sadturtleman.androidsampleproject.deeplink.resolveNewIntentRoute
@@ -36,6 +38,10 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var ttiRecorder: TtiRecorder
 
+    /** 비즈니스 이벤트 기록기. 화면 진입은 백스택을 쥔 컴포지션에서 남기므로 트리에 꽂아 준다. */
+    @Inject
+    lateinit var bizLogger: BizLogger
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
@@ -48,6 +54,7 @@ class MainActivity : ComponentActivity() {
                 LocalNavigationHelper provides navigationHelper,
                 LocalMessageHelper provides messageHelper,
                 LocalTtiRecorder provides ttiRecorder,
+                LocalBizLogger provides bizLogger,
             ) {
                 RootComposable(startStack = startStack)
             }
