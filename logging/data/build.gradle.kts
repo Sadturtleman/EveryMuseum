@@ -2,13 +2,12 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 
 plugins {
     alias(libs.plugins.android.library)
-    alias(libs.plugins.kotlin.compose)
     alias(libs.plugins.hilt.android)
     alias(libs.plugins.ksp)
 }
 
 android {
-    namespace = "com.sadturtleman.androidsampleproject.detail.presentation"
+    namespace = "com.sadturtleman.androidsampleproject.logging.data"
     compileSdk = libs.versions.compileSdk.get().toInt()
 
     defaultConfig {
@@ -28,31 +27,25 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
-    buildFeatures {
-        compose = true
-    }
 }
 
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_17)
-        // MviViewModel 이 explicit backing field(`val uiState: StateFlow<S> field = ...`) 를 쓴다.
-        // 선언 모듈과 소비 모듈 양쪽에 같은 플래그가 있어야 메타데이터를 읽을 수 있다.
-        freeCompilerArgs.add("-Xexplicit-backing-fields")
     }
 }
 
 dependencies {
-    implementation(project(":detail:domain"))
-    implementation(project(":detail:navigation"))
-    implementation(project(":detail:entity"))
-    implementation(project(":common:presentation"))
-    implementation(project(":search:navigation"))
+    // 계약(포트) 과 기록기 본체. 주입받는 쪽이 BizLogger 를 참조하므로 밖으로 내보낸다.
+    api(project(":logging:domain"))
 
-    // 비즈니스 이벤트 계약(BizLogger · BizEvent). 구현 바인딩은 :logging:data 가 app 에서 설치한다.
-    implementation(project(":logging:domain"))
+    // 디스패처 한정자. 쏘기는 전부 IO 에서 돈다.
+    implementation(project(":common:di"))
 
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)
+
+    // Coroutines
+    implementation(libs.kotlinx.coroutines.android)
 }

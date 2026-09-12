@@ -51,6 +51,9 @@ dependencies {
     implementation(project(":search:navigation"))
     implementation(project(":store:navigation"))
 
+    // 비즈니스 이벤트 계약(BizLogger · BizEvent). 구현 바인딩은 :logging:data 가 app 에서 설치한다.
+    implementation(project(":logging:domain"))
+
     // Hilt
     implementation(libs.hilt.android)
     ksp(libs.hilt.compiler)

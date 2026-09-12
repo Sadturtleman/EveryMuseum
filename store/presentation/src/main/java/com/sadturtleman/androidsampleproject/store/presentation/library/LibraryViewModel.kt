@@ -5,6 +5,9 @@ import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
 import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.domain.saved.ToggleSavedRelicUseCase
 import com.sadturtleman.androidsampleproject.detail.navigation.DetailPage
+import com.sadturtleman.androidsampleproject.logging.domain.BizEvent
+import com.sadturtleman.androidsampleproject.logging.domain.BizLogger
+import com.sadturtleman.androidsampleproject.store.navigation.StorePage
 import com.sadturtleman.androidsampleproject.search.navigation.SearchPage
 import com.sadturtleman.androidsampleproject.store.domain.GetSavedRelicsUseCase
 import com.sadturtleman.androidsampleproject.common.presentation.helper.showSavedToggleResult
@@ -33,6 +36,7 @@ class LibraryViewModel @Inject constructor(
     private val toggleSavedRelic: ToggleSavedRelicUseCase,
     private val navigationHelper: NavigationHelper,
     private val messageHelper: MessageHelper,
+    private val bizLogger: BizLogger,
 ) : MviViewModel<LibraryIntent, LibraryUiState, LibraryReducerEvent>(LibraryUiState.Loading) {
 
     private var sortIndex: Int = 0
@@ -88,6 +92,7 @@ class LibraryViewModel @Inject constructor(
             LibraryLayout.List -> LibraryLayout.Grid
             LibraryLayout.Grid -> LibraryLayout.List
         }
+        bizLogger.record(StorePage.PATH, BizEvent.LayoutToggle(layout = layout.name))
         dispatch(LibraryReducerEvent.LayoutChanged(layout))
     }
 
@@ -130,6 +135,7 @@ class LibraryViewModel @Inject constructor(
         val relic = success.items.firstOrNull { it.id == id }?.toSavedRelicVO() ?: return
         viewModelScope.launch {
             val saved = toggleSavedRelic(relic)
+            bizLogger.record(StorePage.PATH, BizEvent.SaveToggle(relicId = relic.id, saved = saved))
             messageHelper.showSavedToggleResult(saved) {
                 viewModelScope.launch { toggleSavedRelic(relic) }
             }

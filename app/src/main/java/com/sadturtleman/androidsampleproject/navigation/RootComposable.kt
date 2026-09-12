@@ -42,11 +42,13 @@ fun RootComposable(
         // rememberNavBackStack 은 @Serializable NavKey 를 저장/복원한다 (프로세스 사망 대응).
         val backStack = rememberNavBackStack(*startStack.toTypedArray())
 
-        val currentRoute = (backStack.lastOrNull() as? GenericNavKey)
-            ?.let { key -> appRouteByPath[key.path] }
+        val currentPath = (backStack.lastOrNull() as? GenericNavKey)?.path
+        val currentRoute = currentPath?.let { path -> appRouteByPath[path] }
         val snackbarHostState = remember { SnackbarHostState() }
 
         MessageHost(snackbarHostState = snackbarHostState)
+        // 화면 진입 이벤트는 백스택을 쥔 여기서 한 번에 남긴다(화면은 알 필요가 없다).
+        ViewEnterEffect(currentPath = currentPath)
 
         Scaffold(
             modifier = modifier.fillMaxSize(),

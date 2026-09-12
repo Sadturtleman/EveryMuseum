@@ -5,6 +5,9 @@ import com.sadturtleman.androidsampleproject.common.domain.code.GetCodesUseCase
 import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.presentation.mvi.MviViewModel
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.MuseumIcons
+import com.sadturtleman.androidsampleproject.logging.domain.BizEvent
+import com.sadturtleman.androidsampleproject.logging.domain.BizLogger
+import com.sadturtleman.androidsampleproject.search.navigation.SearchPage
 import com.sadturtleman.androidsampleproject.search.navigation.SearchResultPage
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -22,6 +25,7 @@ import javax.inject.Inject
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val navigationHelper: NavigationHelper,
+    private val bizLogger: BizLogger,
 ) : MviViewModel<SearchIntent, SearchUiState, SearchReducerEvent>(SearchUiState.Loading) {
 
     private val recentQueries = ArrayDeque<String>()
@@ -93,6 +97,8 @@ class SearchViewModel @Inject constructor(
         if (trimmed.isEmpty()) return
 
         dispatch(SearchReducerEvent.QueryChanged(trimmed))
+        // 최근 검색어 · 인기어를 눌러 들어온 것도 같은 자리를 지나므로 여기 한 번이면 된다.
+        bizLogger.record(SearchPage.PATH, BizEvent.SearchSubmit(query = trimmed))
         addRecentQuery(trimmed)
         navigationHelper.navigateTo(SearchResultPage.Args(query = trimmed))
     }
@@ -112,6 +118,7 @@ class SearchViewModel @Inject constructor(
 
     private fun clearRecentQueries() {
         if (recentQueries.isEmpty()) return
+        bizLogger.record(SearchPage.PATH, BizEvent.SearchRecentClear)
         recentQueries.clear()
         dispatch(SearchReducerEvent.RecentQueriesChanged(emptyList()))
     }

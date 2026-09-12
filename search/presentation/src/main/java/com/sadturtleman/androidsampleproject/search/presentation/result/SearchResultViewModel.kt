@@ -14,6 +14,9 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.model.Artifa
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.toArtifactUiModel
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.toSavedRelicVO
 import com.sadturtleman.androidsampleproject.detail.navigation.DetailPage
+import com.sadturtleman.androidsampleproject.logging.domain.BizEvent
+import com.sadturtleman.androidsampleproject.logging.domain.BizLogger
+import com.sadturtleman.androidsampleproject.search.navigation.SearchResultPage
 import com.sadturtleman.androidsampleproject.search.domain.CountRelicsUseCase
 import com.sadturtleman.androidsampleproject.search.domain.SearchRelicsUseCase
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -53,6 +56,7 @@ class SearchResultViewModel @Inject constructor(
     private val toggleSavedRelic: ToggleSavedRelicUseCase,
     private val navigationHelper: NavigationHelper,
     private val messageHelper: MessageHelper,
+    private val bizLogger: BizLogger,
 ) : MviViewModel<SearchResultIntent, SearchResultUiState, SearchResultReducerEvent>(
     SearchResultUiState(),
 ) {
@@ -95,7 +99,14 @@ class SearchResultViewModel @Inject constructor(
             is SearchResultIntent.ChangeQuery ->
                 dispatch(SearchResultReducerEvent.QueryChanged(intent.query))
 
-            SearchResultIntent.Submit -> executeSearch()
+            SearchResultIntent.Submit -> {
+                // 검색 화면과 같은 이벤트다. 어느 화면에서 친 검색인지는 view name 이 가른다.
+                bizLogger.record(
+                    SearchResultPage.PATH,
+                    BizEvent.SearchSubmit(query = currentState.query),
+                )
+                executeSearch()
+            }
 
             SearchResultIntent.ClearQuery ->
                 dispatch(SearchResultReducerEvent.QueryChanged(""))
@@ -116,6 +127,13 @@ class SearchResultViewModel @Inject constructor(
             }
 
             is SearchResultIntent.ApplyFilters -> {
+                bizLogger.record(
+                    SearchResultPage.PATH,
+                    BizEvent.FilterApply(
+                        tabCode = currentState.filterTabCode,
+                        optionCodes = intent.filters.map { it.code },
+                    ),
+                )
                 dispatch(SearchResultReducerEvent.FiltersChanged(intent.filters))
                 dispatch(SearchResultReducerEvent.FilterSheetVisibilityChanged(visible = false))
                 executeSearch()
@@ -128,6 +146,10 @@ class SearchResultViewModel @Inject constructor(
                 val relic = intent.item.toSavedRelicVO()
                 viewModelScope.launch {
                     val saved = toggleSavedRelic(relic)
+                    bizLogger.record(
+                        SearchResultPage.PATH,
+                        BizEvent.SaveToggle(relicId = relic.id, saved = saved),
+                    )
                     messageHelper.showSavedToggleResult(saved) {
                         viewModelScope.launch { toggleSavedRelic(relic) }
                     }

@@ -42,6 +42,13 @@ include(":tti:domain")
 include(":tti:data")
 include(":tti:presentation")
 
+// 비즈니스 이벤트 로깅. TTI 와 마찬가지로 어느 feature 에도 속하지 않고 앱 전체를 가로지른다.
+// domain 은 순수 코틀린이다 — 남길 수 있는 이벤트 목록(BizEvent)을 들고 있고, 쌓아 두지 않아
+// record 한 건이 그대로 한 번의 전송이 된다.
+// 시각(BizLogClock) 과 전송(BizLogShooter) 은 포트로 둔다.
+include(":logging:domain")
+include(":logging:data")
+
 // 네비게이션 호스트. 각 feature 의 화면을 라우팅 테이블 한 곳에 모은다.
 include(":home:navigation")
 include(":home:presentation")
