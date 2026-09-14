@@ -99,6 +99,11 @@ dependencies {
     implementation(project(":featureflag:domain"))
     implementation(project(":featureflag:data"))
 
+    // 프레임 드랍 계측. Activity 가 JankStats 를 달고, 라우팅 테이블이 화면 이름을 등록한다.
+    implementation(project(":jank:domain"))
+    implementation(project(":jank:presentation"))
+    implementation(project(":jank:data"))
+
     implementation(project(":home:presentation"))
     implementation(project(":home:navigation"))
     implementation(project(":home:domain"))

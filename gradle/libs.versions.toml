@@ -31,6 +31,8 @@ datastore = "1.2.1"
 coil = "3.4.0"
 paging = "3.5.0"
 room = "2.8.4"
+# 프레임 드랍(jank) 계측. 1.0.0 정식 이전이라 beta 를 고정해 쓴다.
+jankStats = "1.0.0-beta02"
 javaxInject = "1"
 
 [libraries]
@@ -50,6 +52,7 @@ androidx-compose-ui-tooling-preview = { group = "androidx.compose.ui", name = "u
 androidx-compose-ui-test-manifest = { group = "androidx.compose.ui", name = "ui-test-manifest" }
 androidx-compose-ui-test-junit4 = { group = "androidx.compose.ui", name = "ui-test-junit4" }
 androidx-compose-runtime = { group = "androidx.compose.runtime", name = "runtime" }
+androidx-compose-foundation = { group = "androidx.compose.foundation", name = "foundation" }
 androidx-compose-material3 = { group = "androidx.compose.material3", name = "material3" }
 androidx-compose-ui-text-google-fonts = { group = "androidx.compose.ui", name = "ui-text-google-fonts" }
 
@@ -73,6 +76,9 @@ androidx-paging-compose = { group = "androidx.paging", name = "paging-compose", 
 # 이미지 로딩 (:common:presentation)
 coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil" }
 coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil" }
+
+# 프레임 드랍 계측 (:jank:presentation)
+androidx-metrics-performance = { group = "androidx.metrics", name = "metrics-performance", version.ref = "jankStats" }
 
 # TTI 측정 기록 저장 (:tti:data)
 androidx-room-runtime = { group = "androidx.room", name = "room-runtime", version.ref = "room" }

@@ -56,6 +56,13 @@ include(":logging:data")
 include(":featureflag:domain")
 include(":featureflag:data")
 
+// 프레임 드랍(jank) 계측. TTI 가 "언제 쓸 수 있게 되는가" 를 잰다면 이쪽은 "쓰는 동안 매끄러운가" 를 잰다.
+// domain 은 순수 코틀린이다 — 버킷과 임계치 규칙이 플랫폼과 무관해야 테스트로 잡을 수 있다.
+// presentation 이 JankStats 의 프레임을 도메인 모양으로 옮기고, data 가 내보낼 곳을 꽂는다.
+include(":jank:domain")
+include(":jank:presentation")
+include(":jank:data")
+
 // 네비게이션 호스트. 각 feature 의 화면을 라우팅 테이블 한 곳에 모은다.
 include(":home:navigation")
 include(":home:presentation")

@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.material3.Text
@@ -20,6 +21,7 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.component.Co
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.CollectionListItem
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.debouncedClickable
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
+import com.sadturtleman.androidsampleproject.jank.presentation.JankScrollWatcher
 
 /**
  * 보관함 본문 (Figma: 06 · 보관함 → scroll).
@@ -33,7 +35,12 @@ internal fun LibraryContent(
     onIntent: (LibraryIntent) -> Unit,
     modifier: Modifier = Modifier,
 ) {
+    val listState = rememberLazyListState()
+    // 스크롤이 도는 구간만 따로 센다. 멈추는 순간 그 구간의 프레임 통계가 나간다.
+    JankScrollWatcher(listState)
+
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(
             horizontal = MuseumTheme.spacing.lg,

@@ -6,10 +6,16 @@ import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.lifecycle.DefaultLifecycleObserver
+import androidx.lifecycle.LifecycleOwner
+import androidx.metrics.performance.JankStats
 import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
 import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalMessageHelper
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalNavigationHelper
+import com.sadturtleman.androidsampleproject.jank.domain.JankReporter
+import com.sadturtleman.androidsampleproject.jank.presentation.LocalJankReporter
+import com.sadturtleman.androidsampleproject.jank.presentation.toJankFrame
 import com.sadturtleman.androidsampleproject.logging.domain.BizLogger
 import com.sadturtleman.androidsampleproject.navigation.LocalBizLogger
 import com.sadturtleman.androidsampleproject.tti.domain.TtiRecorder
@@ -42,8 +48,40 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var bizLogger: BizLogger
 
+    /** 프레임 드랍 집계기. 화면 이름과 스크롤 구간을 컴포지션이 알려 주므로 트리에도 꽂는다. */
+    @Inject
+    lateinit var jankReporter: JankReporter
+
+    /**
+     * JankStats 는 DecorView 가 생긴 뒤에만 만들 수 있어 [onCreate] 에서 바로 만들지 않는다.
+     * 아래 lifecycle 관찰자가 처음 [onResume] 때 한 번 만들고, 그 뒤로는 껐다 켠다.
+     */
+    private var jankStats: JankStats? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // 프레임 계측은 화면이 앞에 있는 동안만 돈다. 뒤로 내려간 뒤의 프레임은 사용자가 보지 않는다.
+        // 콜백은 메인 스레드에서 불리므로 여기서 무거운 일을 하면 그것이 다시 프레임을 놓치게 만든다.
+        lifecycle.addObserver(object : DefaultLifecycleObserver {
+            override fun onResume(owner: LifecycleOwner) {
+                if (jankStats == null) {
+                    jankStats = JankStats.createAndTrack(window) { frameData ->
+                        jankReporter.onFrame(frameData.toJankFrame())
+                    }
+                }
+                jankStats?.isTrackingEnabled = true
+            }
+
+            override fun onPause(owner: LifecycleOwner) {
+                jankStats?.isTrackingEnabled = false
+            }
+
+            /** 안드로이드는 프로세스 종료를 알려주지 않으므로 여기서 남은 통계를 비운다. */
+            override fun onStop(owner: LifecycleOwner) {
+                jankReporter.onAppBackground()
+            }
+        })
 
         // deep-link 진입 시 Intent.data 에서 시작 백스택을 구성한다.
         val startStack = resolveStartStack(intent?.data)
@@ -55,6 +93,7 @@ class MainActivity : ComponentActivity() {
                 LocalMessageHelper provides messageHelper,
                 LocalTtiRecorder provides ttiRecorder,
                 LocalBizLogger provides bizLogger,
+                LocalJankReporter provides jankReporter,
             ) {
                 RootComposable(startStack = startStack)
             }

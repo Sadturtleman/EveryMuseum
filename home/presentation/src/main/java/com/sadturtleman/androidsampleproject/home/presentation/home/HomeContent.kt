@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.lazy.itemsIndexed
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
@@ -36,6 +37,7 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.Museum
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.museumLinearGradient
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.museumShadow
+import com.sadturtleman.androidsampleproject.jank.presentation.JankScrollWatcher
 
 /**
  * 홈 본문 (Figma: 01 · 홈 → scroll).
@@ -50,7 +52,12 @@ internal fun HomeContent(
 ) {
     val rows = state.items.chunked(GRID_COLUMNS)
 
+    val listState = rememberLazyListState()
+    // 스크롤이 도는 구간만 따로 센다. 멈추는 순간 그 구간의 프레임 통계가 나간다.
+    JankScrollWatcher(listState)
+
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(
             start = MuseumTheme.spacing.lg,

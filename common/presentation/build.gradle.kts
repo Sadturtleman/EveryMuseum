@@ -54,6 +54,9 @@ dependencies {
     // (:tti:domain 은 여기에 api 로 딸려 온다 — 화면이 TtiTimeline 을 직접 넘긴다)
     api(project(":tti:presentation"))
 
+    // 스크롤 구간의 프레임 드랍을 재는 helper. 목록 화면이 그대로 쓰므로 api 로 내보낸다.
+    api(project(":jank:presentation"))
+
     api(libs.androidx.core.ktx)
     api(libs.androidx.lifecycle.runtime.ktx)
     api(libs.androidx.lifecycle.runtime.compose)
