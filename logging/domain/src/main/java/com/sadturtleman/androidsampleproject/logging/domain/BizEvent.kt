@@ -95,6 +95,39 @@ sealed interface BizEvent {
     }
 
     /**
+     * 이 실행에서 사용자가 어떤 피처 플래그 · AB 테스트에 놓였는지.
+     *
+     * 앱이 뜨면서 플래그가 정해진 자리에서 한 번 남긴다. 사용자 식별자는 기록 한 건마다
+     * [BizLogger] 가 붙이므로, 지표에서 배정과 그 뒤의 행동이 같은 키로 이어진다.
+     *
+     * 플래그 이름을 그대로 키로 쓰지 않고 `flag_` 를 붙이는 것은 environment 같은 이름과
+     * 부딪히지 않게 하려는 것이다.
+     *
+     * @param environment dev · qa · prod 중 이 빌드의 환경. 같은 플래그도 환경마다 값이 다르다.
+     * @param assignments 플래그 이름 → 이 사용자가 받은 값.
+     */
+    data class FlagsResolved(
+        val environment: String,
+        val assignments: Map<String, String>,
+    ) : BizEvent {
+        override val name = "flags_resolved"
+        override val parameters: Map<String, Any?> =
+            mapOf("environment" to environment) + assignments.mapKeys { (key, _) -> "flag_$key" }
+    }
+
+    /**
+     * AB 테스트의 변형이 실제로 화면에 쓰였다.
+     *
+     * [FlagsResolved] 와 따로 두는 이유는 배정과 노출이 다르기 때문이다 — 배정만 받고
+     * 그 화면에 한 번도 들어오지 않은 사용자를 실험 결과에 넣으면 차이가 묽어진다.
+     */
+    data class AbExposed(val experiment: String, val variant: String) : BizEvent {
+        override val name = "ab_exposed"
+        override val parameters: Map<String, Any?> =
+            mapOf("experiment" to experiment, "variant" to variant)
+    }
+
+    /**
      * 보관함의 보기 방식을 바꿨다.
      *
      * @param layout 바꾼 뒤의 보기. 화면이 쓰는 타입을 도메인이 알 수 없으므로 이름을 넘긴다.

@@ -5,7 +5,8 @@
 국립중앙박물관 [e뮤지엄 Open API](https://www.emuseum.go.kr) 의 소장품을 둘러보는 앱이고,
 멀티 모듈 · MVI · Navigation 3 · Hilt 로 구성돼 있습니다.
 
-화면 진입 시간(TTI) 계측과 비즈니스 이벤트 로깅이 앱 전체를 가로지르는 모듈로 따로 있습니다.
+화면 진입 시간(TTI) 계측, 비즈니스 이벤트 로깅, 환경별 피처 플래그 · AB 테스트가
+앱 전체를 가로지르는 모듈로 따로 있습니다.
 
 ## 시스템 아키텍처
 
@@ -50,14 +51,24 @@ flowchart LR
         ld -->|전송 포트| ldata
     end
 
+    subgraph FLAG[":featureflag — 환경별 플래그 · AB"]
+        direction LR
+        fl[":featureflag:domain<br/>플래그 카탈로그 · 제공자"]
+        fldata[":featureflag:data<br/>Hilt 조립 · 리모트 컨피그"]
+        fl -->|값 출처 포트| fldata
+    end
+
     fp -->|구간 열기 · 닫기| tp
     fp -->|이벤트 기록| ld
     app -->|화면 진입 기록| ld
+    fp -->|플래그 읽기| fl
+    fd -->|플래그 읽기| fl
+    fl -.->|배정 기록| ld
 ```
 
 > 🔍 인터랙티브 버전: [`docs/architecture.html`](docs/architecture.html)
-> 모듈을 눌러 의존 관계만 추리거나 `주요 요청 경로` · `공통 레이어` · `TTI 계측` · `이벤트 로깅` 네 갈래로
-> 나눠 볼 수 있습니다.
+> 모듈을 눌러 의존 관계만 추리거나 `주요 요청 경로` · `공통 레이어` · `TTI 계측` · `가로지르는 모듈`
+> 네 갈래로 나눠 볼 수 있습니다.
 > (GitHub 은 저장소 안의 HTML 을 렌더링하지 않습니다 — 내려받아 브라우저에서 열어 주세요)
 
 **레이어 규칙**
@@ -70,6 +81,7 @@ flowchart LR
 | `:common:network` | 공용 | 통신 스택 하나. 엔드포인트는 각 `data` 모듈이 정함 |
 | `:tti:domain` | 순수 코틀린 | 무엇을 언제 재는가. 시각·저장은 포트로 위임 |
 | `:logging:domain` | 순수 코틀린 | 무엇을 남길 수 있는가. 전송은 포트로 위임 |
+| `:featureflag:domain` | 순수 코틀린 | 어떤 플래그·실험이 있는가. 값 출처는 포트로 위임 |
 
 ## 주요 경로 — 소장품 상세 조회
 
@@ -167,6 +179,8 @@ adb logcat | grep "TTI:"
 | `FilterApply` | `tabCode` · `optionCodes` | 검색 결과 |
 | `EraSelect` | `eraCode` | 홈 |
 | `LayoutToggle` | `layout` | 보관함 |
+| `FlagsResolved` | `environment` · 배정 전부 | 플래그를 받아 온 직후 `:featureflag` 에서 |
+| `AbExposed` | `experiment` · `variant` | 그 변형이 실제로 화면에 쓰인 자리 |
 
 ```kotlin
 bizLogger.record(DetailPage.PATH, BizEvent.RelicOpen(relicId = id))
@@ -188,6 +202,85 @@ BIZLOG: /detail save_toggle user=2b7f3c9a-4d51-4e08-9a6b-1c0f5e83d7a2 at=1789516
 adb logcat | grep "BIZLOG:"
 ```
 
+## 피처 플래그 · AB 테스트
+
+`:featureflag` 는 리모트 컨피그에서 값을 받아 플래그와 실험 배정을 읽습니다.
+순수 코틀린이라 화면뿐 아니라 UseCase 도 같은 제공자를 생성자 주입으로 받습니다.
+
+```kotlin
+class GetHomeRelicsUseCase @Inject constructor(
+    private val homeContentRepository: HomeContentRepository,
+    private val featureFlags: FeatureFlagProvider,
+) {
+    suspend operator fun invoke(eraCode: String? = null) = homeContentRepository.getHomeRelics(
+        eraCode = eraCode,
+        pageSize = featureFlags.get(FlagKey.HomePageSize),
+    )
+}
+```
+
+무엇이 있는지는 `FlagKey` 한 곳에서 봅니다. 키 하나가 이름 · 타입 · 기본값을 함께 지니므로
+부르는 쪽에 캐스팅도 기본값 처리도 없습니다.
+
+| 플래그 | 타입 | 안정 | 쓰는 곳 |
+|---|---|---|---|
+| `NewOnboarding` | `Boolean` | 예 | 온보딩 개편 스위치 |
+| `HomePageSize` | `Int` | 예 | 홈 조회 행 수 |
+| `HomeBanner` | `HomeBannerVO` | 예 | 홈 배너 문구 · 링크 |
+| `SearchRetryCount` | `Int` | 아니오 | 검색 재시도 |
+| `FetchTimeoutMillis` | `Long` | 아니오 | 네트워크 타임아웃 |
+| `RetryBackoffMillis` | `List<Long>` | 아니오 | 재시도 간격 |
+| `LibraryLayoutAb` | `LibraryLayoutVariant` | 예 | 보관함 첫 보기 실험 |
+
+**타입을 `KSerializer` 로 들고 다니는 이유**
+
+`Class<T>` 는 제네릭을 지웁니다. `List<Long>` 을 `Class` 로 적으면 원소가 `Long` 인지 알 수 없어
+원소 타입을 따로 받아야 하고, 값은 돌아오는 길에 `Any` 를 거칩니다.
+`KSerializer` 는 원소 타입까지 담고 있어 원시 타입 · 리스트 · JSON 객체를 한 방법으로 읽습니다.
+
+```kotlin
+data object RetryBackoffMillis : FlagKey<List<Long>>(
+    key = "retry_backoff_ms",
+    serializer = ListSerializer(Long.serializer()),
+    defaultValue = listOf(1_000L, 2_000L, 4_000L),
+    stable = false,
+)
+```
+
+읽을 때는 리모트 값을 `JsonElement` 로 모아 그 직렬화기 하나로 해석합니다.
+분기마다 캐스팅하지 않으므로 선언한 타입과 어긋나는 조합을 쓸 수 없고, enum 변형이 그대로 따라옵니다.
+그래서 AB 변형은 문자열이 아니라 enum 이고, 쓰는 쪽의 `when` 은 컴파일러가 검사합니다.
+
+**안정과 비안정**
+
+`stable` 은 "한 실행 동안 바뀌지 않아도 되는가" 입니다. 안정된 것은 `init` 이 받아 둔 값을 왕복 없이
+쓰고, 아닌 것은 읽을 때마다 다시 가져오되 왕복이 실패하면 마지막으로 성공한 값을 내놓습니다.
+화면 구성을 가르는 값이 도중에 바뀌면 같은 사용자가 두 화면을 다르게 보고,
+운영값이 네트워크가 끊겼다고 초기값으로 되돌아가면 고쳐 둔 타임아웃이 그 자리에서 풀립니다.
+
+**환경**
+
+`dev` · `qa` · `prod` 는 빌드 플레이버이고, 리모트 키 꼬리로 갈립니다.
+찾는 순서는 아래로만 흐릅니다 — `dev` 는 자기 값이 없으면 `qa`, 그다음 `prod` 를 주워 쓰고
+`prod` 는 위를 보지 않습니다. 같은 값을 환경마다 적어 두지 않아도 되고,
+`dev` 에서 켜 본 실험이 `prod` 사용자에게 새지도 않습니다.
+
+```
+home_page_size_dev → home_page_size_qa → home_page_size_prod → FlagKey.defaultValue
+```
+
+배정은 `init` 안에서 곧바로 로그로 나갑니다. 부르는 쪽에 맡기면 빠뜨릴 수 있고,
+그러면 어떤 사용자가 어떤 실험에 있었는지 나중에 되짚을 수 없습니다.
+사용자 식별자는 `:logging` 이 기록마다 붙입니다.
+
+```
+BIZLOG: /app flags_resolved user=2b7f3c9a-4d51-4e08-9a6b-1c0f5e83d7a2 at=1789516811004 {environment=dev, flag_new_onboarding=true, flag_home_page_size=5, flag_ab_library_default_layout=GRID}
+```
+
+지금 값 출처는 앱 안에 둔 샘플 구현입니다. `google-services.json` 을 넣고
+`RemoteConfigSource` 구현만 Firebase 것으로 바꾸면 읽는 쪽 코드는 그대로입니다.
+
+
 **이 모듈에서 지키는 것**
 
 - 사용자 UUID 는 앱 실행당 하나이고, 기록기가 아니라 **건마다** 붙습니다 — 전송이 도는 사이에
@@ -207,10 +300,16 @@ EMUSEUM_BASE_URL=https://apis.data.go.kr/.../
 EMUSEUM_SERVICE_KEY=발급받은_인증키
 ```
 
+환경은 빌드 플레이버로 고릅니다.
+
 ```bash
-./gradlew :app:assembleDebug
+./gradlew :app:assembleDevDebug
+./gradlew :app:assembleQaDebug
+./gradlew :app:assembleProdRelease
+
 ./gradlew :tti:domain:test
 ./gradlew :logging:domain:test
+./gradlew :featureflag:domain:test
 ```
 
 ---

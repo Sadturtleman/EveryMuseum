@@ -5,6 +5,9 @@ import com.sadturtleman.androidsampleproject.common.domain.helper.MessageHelper
 import com.sadturtleman.androidsampleproject.common.navigation.NavigationHelper
 import com.sadturtleman.androidsampleproject.common.domain.saved.ToggleSavedRelicUseCase
 import com.sadturtleman.androidsampleproject.detail.navigation.DetailPage
+import com.sadturtleman.androidsampleproject.common.entity.featureflag.LibraryLayoutVariant
+import com.sadturtleman.androidsampleproject.featureflag.domain.FeatureFlagProvider
+import com.sadturtleman.androidsampleproject.featureflag.domain.FlagKey
 import com.sadturtleman.androidsampleproject.logging.domain.BizEvent
 import com.sadturtleman.androidsampleproject.logging.domain.BizLogger
 import com.sadturtleman.androidsampleproject.store.navigation.StorePage
@@ -37,6 +40,7 @@ class LibraryViewModel @Inject constructor(
     private val navigationHelper: NavigationHelper,
     private val messageHelper: MessageHelper,
     private val bizLogger: BizLogger,
+    private val featureFlags: FeatureFlagProvider,
 ) : MviViewModel<LibraryIntent, LibraryUiState, LibraryReducerEvent>(LibraryUiState.Loading) {
 
     private var sortIndex: Int = 0
@@ -46,7 +50,34 @@ class LibraryViewModel @Inject constructor(
     private var observeJob: Job? = null
 
     init {
+        applyLayoutExperiment()
         observeSavedItems()
+    }
+
+    /**
+     * 처음 보기를 AB 배정대로 연다([FlagKey.LibraryLayoutAb]).
+     *
+     * 사용자가 보기를 직접 바꾸면 그때부터는 그 선택이 이긴다 — 배정은 시작값일 뿐이다.
+     * 배정만 받고 보관함에 들어오지 않은 사용자까지 실험에 넣으면 차이가 묽어지므로,
+     * 노출은 여기 화면이 열린 자리에서 따로 남긴다.
+     */
+    private fun applyLayoutExperiment() {
+        viewModelScope.launch {
+            val variant = featureFlags.get(FlagKey.LibraryLayoutAb)
+            bizLogger.record(
+                StorePage.PATH,
+                BizEvent.AbExposed(
+                    experiment = FlagKey.LibraryLayoutAb.key,
+                    variant = variant.name.lowercase(),
+                ),
+            )
+            // 변형이 enum 이라 빠진 가지가 있으면 컴파일이 멈춘다 — 새 변형을 넣고 여기를 잊을 수 없다.
+            layout = when (variant) {
+                LibraryLayoutVariant.LIST -> LibraryLayout.List
+                LibraryLayoutVariant.GRID -> LibraryLayout.Grid
+            }
+            dispatch(LibraryReducerEvent.LayoutChanged(layout))
+        }
     }
 
     override fun onIntent(intent: LibraryIntent) {

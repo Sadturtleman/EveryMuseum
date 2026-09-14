@@ -11,7 +11,7 @@
     ],
     "repository": {
       "url": "https://github.com/Sadturtleman/EveryMuseum",
-      "revision": "3739cd1c21ba2ceabc3c0888ce66096de0ec98ea"
+      "revision": "b8d913febf25420cd5fc91e63ef71fe79e1875c7"
     },
     "views": [
       {
@@ -51,14 +51,17 @@
         "note": "화면이 쓸 수 있는 상태가 되기까지를 재는 계측 모듈."
       },
       {
-        "id": "logging",
-        "label": "이벤트 로깅",
+        "id": "cross-cutting",
+        "label": "가로지르는 모듈",
         "focus": [
           "featurePresentation",
+          "featureDomain",
           "loggingDomain",
-          "loggingData"
+          "loggingData",
+          "flagDomain",
+          "flagData"
         ],
-        "note": "사용자가 무엇을 했는지를 한 건씩 남기는 모듈. 쌓아 두지 않고 그 자리에서 나간다."
+        "note": "어느 feature 에도 속하지 않고 화면과 도메인 양쪽이 함께 쓰는 모듈."
       }
     ]
   },
@@ -323,6 +326,50 @@
           "path": "logging/data/src/main/java/com/sadturtleman/androidsampleproject/logging/data/PrintBizLogShooter.kt"
         }
       ]
+    },
+    {
+      "id": "flagDomain",
+      "type": "backend",
+      "label": ":featureflag:domain",
+      "sublabel": "플래그 카탈로그 · 제공자",
+      "tag": "안드로이드 의존 0",
+      "pos": [
+        470,
+        90
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "featureflag/domain/src/main/java/com/sadturtleman/androidsampleproject/featureflag/domain/FlagKey.kt",
+          "label": "플래그 · 실험 목록"
+        },
+        {
+          "path": "featureflag/domain/src/main/java/com/sadturtleman/androidsampleproject/featureflag/domain/DefaultFeatureFlagProvider.kt",
+          "label": "제공자"
+        }
+      ]
+    },
+    {
+      "id": "flagData",
+      "type": "cloud",
+      "label": ":featureflag:data",
+      "sublabel": "Hilt 조립 · 리모트 컨피그",
+      "pos": [
+        690,
+        90
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "featureflag/data/src/main/java/com/sadturtleman/androidsampleproject/featureflag/data/SampleRemoteConfigSource.kt"
+        }
+      ]
     }
   ],
   "boundaries": [
@@ -341,6 +388,14 @@
       "wraps": [
         "loggingDomain",
         "loggingData"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": ":featureflag — 환경별 플래그 · AB",
+      "wraps": [
+        "flagDomain",
+        "flagData"
       ]
     }
   ],
@@ -393,7 +448,8 @@
       "variant": "dashed",
       "fromSide": "bottom",
       "toSide": "top",
-      "labelDy": 57
+      "labelDy": 57,
+      "labelDx": -70
     },
     {
       "id": "keyInject",
@@ -451,6 +507,30 @@
       "to": "loggingData",
       "label": "전송 포트",
       "labelDy": -28
+    },
+    {
+      "id": "flagRead",
+      "from": "featurePresentation",
+      "to": "flagDomain",
+      "label": "플래그 읽기",
+      "fromSide": "top",
+      "toSide": "bottom",
+      "labelDx": 70
+    },
+    {
+      "id": "flagReadDomain",
+      "from": "featureDomain",
+      "to": "flagDomain",
+      "label": "플래그 읽기",
+      "fromSide": "top",
+      "toSide": "bottom"
+    },
+    {
+      "id": "configSource",
+      "from": "flagDomain",
+      "to": "flagData",
+      "label": "값 출처 포트",
+      "labelDy": 58
     }
   ],
   "cards": [
@@ -474,11 +554,11 @@
     },
     {
       "dot": "violet",
-      "title": "계측 · 로깅",
+      "title": "가로지르는 모듈",
       "items": [
-        ":tti:domain 도 :logging:domain 도 안드로이드 의존이 없다 — 전부 포트로 둔다",
-        "TTI 는 네 구간이 닫힌 기록만 쏘고, 로깅은 한 건이 그대로 한 번의 전송이다",
-        "BizEvent 는 sealed — 카탈로그에 없는 이벤트는 남길 수 없다"
+        "세 모듈 다 domain 은 안드로이드 의존이 없다 — 전부 포트로 둔다",
+        "플래그는 화면도 UseCase 도 읽는다. 값 타입은 키가 KSerializer 로 들고 있다",
+        "플래그 · 실험 배정은 받는 즉시 사용자 식별자와 함께 로그로 나간다"
       ]
     }
   ]
