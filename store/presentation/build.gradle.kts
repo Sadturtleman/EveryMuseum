@@ -53,6 +53,10 @@ dependencies {
     // 비즈니스 이벤트 계약(BizLogger · BizEvent). 구현 바인딩은 :logging:data 가 app 에서 설치한다.
     implementation(project(":logging:domain"))
 
+    // 보관함 첫 보기를 AB 배정이 정한다. 변형 enum 은 :common:entity 에 있다.
+    implementation(project(":featureflag:domain"))
+    implementation(project(":common:entity"))
+
     // 상세로 이동하기 위해 대상 Page / typed Args 정의만 참조한다(화면 구현은 참조하지 않음).
 
     // Hilt

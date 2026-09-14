@@ -49,6 +49,13 @@ include(":tti:presentation")
 include(":logging:domain")
 include(":logging:data")
 
+// 피처 플래그 · AB 테스트. 이것도 앱 전체를 가로지른다.
+// domain 은 순수 코틀린이다 — presentation 과 feature:domain 이 함께 읽어야 하므로
+// 안드로이드에 기대면 도메인 레이어에서 못 쓴다.
+// 값 출처(RemoteConfigSource) 와 상태 기록(FlagStateRecorder) 은 포트로 둔다.
+include(":featureflag:domain")
+include(":featureflag:data")
+
 // 네비게이션 호스트. 각 feature 의 화면을 라우팅 테이블 한 곳에 모은다.
 include(":home:navigation")
 include(":home:presentation")

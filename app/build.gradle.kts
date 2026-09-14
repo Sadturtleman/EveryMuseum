@@ -33,12 +33,37 @@ android {
             )
         }
     }
+
+    // 피처 플래그와 AB 테스트는 환경마다 따로 있다. 어느 환경인지는 빌드가 정해 심어 주고,
+    // :featureflag 는 그 값을 AppEnvironment 로 읽어 리모트 키 앞에 붙인다.
+    // dev · qa 는 applicationId 가 달라 한 기기에 나란히 깔린다.
+    flavorDimensions += "env"
+    productFlavors {
+        create("dev") {
+            dimension = "env"
+            applicationIdSuffix = ".dev"
+            versionNameSuffix = "-dev"
+            buildConfigField("String", "APP_ENV", "\"DEV\"")
+        }
+        create("qa") {
+            dimension = "env"
+            applicationIdSuffix = ".qa"
+            versionNameSuffix = "-qa"
+            buildConfigField("String", "APP_ENV", "\"QA\"")
+        }
+        create("prod") {
+            dimension = "env"
+            buildConfigField("String", "APP_ENV", "\"PROD\"")
+        }
+    }
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
     buildFeatures {
         compose = true
+        // 플레이버가 심는 APP_ENV 를 코드에서 읽는다.
+        buildConfig = true
     }
 }
 
@@ -69,6 +94,10 @@ dependencies {
     // domain 은 계약(BizLogger · BizEvent), data 는 Hilt 조립과 전송 구현이다.
     implementation(project(":logging:domain"))
     implementation(project(":logging:data"))
+
+    // 피처 플래그 · AB 테스트. Application 이 init 을 잡고, 환경은 이 모듈이 BuildConfig 에서 읽어 준다.
+    implementation(project(":featureflag:domain"))
+    implementation(project(":featureflag:data"))
 
     implementation(project(":home:presentation"))
     implementation(project(":home:navigation"))

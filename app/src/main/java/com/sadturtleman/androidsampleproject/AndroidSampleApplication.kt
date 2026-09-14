@@ -8,9 +8,13 @@ import coil3.ImageLoader
 import coil3.PlatformContext
 import coil3.SingletonImageLoader
 import com.sadturtleman.androidsampleproject.common.presentation.ui.image.museumImageLoader
+import com.sadturtleman.androidsampleproject.featureflag.domain.FeatureFlagProvider
 import com.sadturtleman.androidsampleproject.logging.domain.BizLogger
 import com.sadturtleman.androidsampleproject.tti.domain.TtiRecorder
 import dagger.hilt.android.HiltAndroidApp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 @HiltAndroidApp
@@ -27,12 +31,26 @@ class AndroidSampleApplication :
     @Inject
     lateinit var bizLogger: BizLogger
 
+    /** 피처 플래그 · AB 테스트. 첫 화면이 뜨기 전에 값을 받아 둔다. */
+    @Inject
+    lateinit var featureFlags: FeatureFlagProvider
+
+    /**
+     * 앱과 수명을 같이하는 스코프. 플래그 받아 오기 하나만 여기서 돈다.
+     *
+     * onCreate 를 막지 않는 것은 첫 화면이 늦어지면 그대로 TTI 에 얹히기 때문이다.
+     * 값이 오기 전에 읽은 플래그는 기본값이 되고, 그것으로도 앱은 돌아간다.
+     */
+    private val appScope = CoroutineScope(SupervisorJob())
+
     override fun onCreate() {
         super<Application>.onCreate()
         // 지난 실행이 쏘지 못하고 죽은 기록도 이 시점에 함께 나간다.
         ttiRecorder.init()
         // 이 실행의 사용자 UUID 도 여기서 만들어진다. 로그인 지점에서 makeUUID 로 갈아 끼운다.
         bizLogger.init()
+        // 로깅을 먼저 연 뒤에 부른다 — 플래그 배정은 받자마자 그 기록기로 나간다.
+        appScope.launch { featureFlags.init() }
         ProcessLifecycleOwner.get().lifecycle.addObserver(this)
     }
 
