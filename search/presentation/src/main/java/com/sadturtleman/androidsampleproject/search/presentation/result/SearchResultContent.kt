@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -30,6 +31,7 @@ import com.sadturtleman.androidsampleproject.common.presentation.ui.component.Mu
 import com.sadturtleman.androidsampleproject.common.presentation.ui.component.debouncedClickable
 import com.sadturtleman.androidsampleproject.common.presentation.ui.model.ArtifactUiModel
 import com.sadturtleman.androidsampleproject.common.presentation.ui.theme.MuseumTheme
+import com.sadturtleman.androidsampleproject.jank.presentation.JankScrollWatcher
 
 /**
  * 검색 결과 본문 (Figma: 03 · 검색 결과 → toolbar · 적용된 필터 · results).
@@ -48,7 +50,12 @@ internal fun SearchResultContent(
 ) {
     val rowCount = (items.itemCount + GRID_COLUMNS - 1) / GRID_COLUMNS
 
+    val listState = rememberLazyListState()
+    // 스크롤이 도는 구간만 따로 센다. 멈추는 순간 그 구간의 프레임 통계가 나간다.
+    JankScrollWatcher(listState)
+
     LazyColumn(
+        state = listState,
         modifier = modifier.fillMaxWidth(),
         contentPadding = PaddingValues(bottom = MuseumTheme.spacing.lg),
     ) {

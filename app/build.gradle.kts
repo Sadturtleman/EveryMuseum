@@ -83,6 +83,9 @@ dependencies {
     implementation(project(":common:di"))
     implementation(project(":common:navigation"))
 
+    // 기기 정보. 빌드 변형만은 이 모듈이 BuildConfig 에서 읽어 꽂아 준다(DeviceInfoAppModule).
+    implementation(project(":common:util"))
+
     // 화면 진입 시간 계측. Application 이 init · destroy 를 잡는다.
     // domain 은 계약(TtiRecorder · PrintTtiShooter), data 는 Hilt 바인딩,
     // presentation 은 라우팅 테이블이 화면을 감싸는 TtiPage 때문에 필요하다.
@@ -98,6 +101,11 @@ dependencies {
     // 피처 플래그 · AB 테스트. Application 이 init 을 잡고, 환경은 이 모듈이 BuildConfig 에서 읽어 준다.
     implementation(project(":featureflag:domain"))
     implementation(project(":featureflag:data"))
+
+    // 프레임 드랍 계측. Activity 가 JankStats 를 달고, 라우팅 테이블이 화면 이름을 등록한다.
+    implementation(project(":jank:domain"))
+    implementation(project(":jank:presentation"))
+    implementation(project(":jank:data"))
 
     implementation(project(":home:presentation"))
     implementation(project(":home:navigation"))

@@ -6,12 +6,12 @@
     "output": "../architecture.html",
     "quality_profile": "showcase",
     "viewBox": [
-      1320,
-      740
+      1380,
+      700
     ],
     "repository": {
       "url": "https://github.com/Sadturtleman/EveryMuseum",
-      "revision": "b8d913febf25420cd5fc91e63ef71fe79e1875c7"
+      "revision": "a3d85ccb7df1c1f360f6d69553fd880e252b562f"
     },
     "views": [
       {
@@ -35,9 +35,10 @@
           "featurePresentation",
           "serviceKey",
           "network",
-          "datastore"
+          "datastore",
+          "commonUtil"
         ],
-        "note": "모든 feature 가 함께 쓰는 디자인 시스템 · 통신 스택 · 로컬 저장."
+        "note": "모든 feature 가 함께 쓰는 디자인 시스템 · 통신 스택 · 로컬 저장 · 기기 정보."
       },
       {
         "id": "tti",
@@ -59,9 +60,13 @@
           "loggingDomain",
           "loggingData",
           "flagDomain",
-          "flagData"
+          "flagData",
+          "jankPresentation",
+          "jankDomain",
+          "jankData",
+          "commonUtil"
         ],
-        "note": "어느 feature 에도 속하지 않고 화면과 도메인 양쪽이 함께 쓰는 모듈."
+        "note": "어느 feature 에도 속하지 않고 화면과 도메인 양쪽이 함께 쓰는 모듈. 계측 수치는 :common:util 의 기기 정보와 함께 봐야 읽힌다 — 저사양 기기의 TTI 나 좁은 대역폭의 이미지 로딩은 코드가 아니라 기기가 한 일이다."
       }
     ]
   },
@@ -211,7 +216,7 @@
       "label": ":common:datastore",
       "sublabel": "Preferences DataStore",
       "pos": [
-        690,
+        910,
         430
       ],
       "size": [
@@ -226,12 +231,33 @@
       ]
     },
     {
+      "id": "commonUtil",
+      "type": "backend",
+      "label": ":common:util",
+      "sublabel": "기기 · OS · 리소스",
+      "tag": "DeviceInfoProvider",
+      "pos": [
+        1170,
+        430
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "common/util/src/main/java/com/sadturtleman/androidsampleproject/common/util/device/DeviceInfoProvider.kt",
+          "label": "기기 정보 계약"
+        }
+      ]
+    },
+    {
       "id": "ttiPresentation",
       "type": "frontend",
       "label": ":tti:presentation",
       "sublabel": "TtiPage · 구간 Effect",
       "pos": [
-        690,
+        730,
         600
       ],
       "size": [
@@ -251,7 +277,7 @@
       "sublabel": "네 구간 정의 · 기록기",
       "tag": "안드로이드 의존 0",
       "pos": [
-        910,
+        950,
         600
       ],
       "size": [
@@ -270,7 +296,7 @@
       "label": ":tti:data",
       "sublabel": "Room tti.db · SystemClock",
       "pos": [
-        1130,
+        1170,
         600
       ],
       "size": [
@@ -290,8 +316,8 @@
       "sublabel": "이벤트 카탈로그 · 기록기",
       "tag": "안드로이드 의존 0",
       "pos": [
-        30,
-        600
+        250,
+        430
       ],
       "size": [
         160,
@@ -314,8 +340,8 @@
       "label": ":logging:data",
       "sublabel": "Hilt 조립 · 전송 구현",
       "pos": [
-        250,
-        600
+        470,
+        430
       ],
       "size": [
         160,
@@ -370,6 +396,64 @@
           "path": "featureflag/data/src/main/java/com/sadturtleman/androidsampleproject/featureflag/data/SampleRemoteConfigSource.kt"
         }
       ]
+    },
+    {
+      "id": "jankPresentation",
+      "type": "frontend",
+      "label": ":jank:presentation",
+      "sublabel": "화면 이름 · 스크롤 감시",
+      "pos": [
+        30,
+        600
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "jank/presentation/src/main/java/com/sadturtleman/androidsampleproject/jank/presentation/JankCompose.kt"
+        }
+      ]
+    },
+    {
+      "id": "jankDomain",
+      "type": "backend",
+      "label": ":jank:domain",
+      "sublabel": "버킷 · 임계치",
+      "tag": "안드로이드 의존 0",
+      "pos": [
+        250,
+        600
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "jank/domain/src/main/java/com/sadturtleman/androidsampleproject/jank/domain/JankReporter.kt"
+        }
+      ]
+    },
+    {
+      "id": "jankData",
+      "type": "messagebus",
+      "label": ":jank:data",
+      "sublabel": "빌드별 내보낼 곳",
+      "pos": [
+        470,
+        600
+      ],
+      "size": [
+        160,
+        68
+      ],
+      "sources": [
+        {
+          "path": "jank/data/src/main/java/com/sadturtleman/androidsampleproject/jank/data/JankDataModule.kt"
+        }
+      ]
     }
   ],
   "boundaries": [
@@ -396,6 +480,15 @@
       "wraps": [
         "flagDomain",
         "flagData"
+      ]
+    },
+    {
+      "kind": "region",
+      "label": ":jank — 프레임 드랍 계측",
+      "wraps": [
+        "jankPresentation",
+        "jankDomain",
+        "jankData"
       ]
     }
   ],
@@ -467,9 +560,9 @@
       "to": "datastore",
       "label": "보관함 id 저장",
       "variant": "dashed",
-      "fromSide": "bottom",
+      "fromSide": "right",
       "toSide": "top",
-      "labelDy": 67
+      "labelDy": 45
     },
     {
       "id": "measure",
@@ -499,7 +592,8 @@
       "to": "loggingDomain",
       "label": "이벤트 기록",
       "fromSide": "bottom",
-      "toSide": "top"
+      "toSide": "top",
+      "labelDy": 75
     },
     {
       "id": "shooterPort",
@@ -531,6 +625,37 @@
       "to": "flagData",
       "label": "값 출처 포트",
       "labelDy": 58
+    },
+    {
+      "id": "jankWatch",
+      "from": "app",
+      "to": "jankPresentation",
+      "label": "화면 이름 등록",
+      "fromSide": "bottom",
+      "toSide": "top",
+      "labelDy": 40
+    },
+    {
+      "id": "jankCollect",
+      "from": "jankPresentation",
+      "to": "jankDomain",
+      "label": "JankReporter",
+      "labelDy": -28
+    },
+    {
+      "id": "jankSink",
+      "from": "jankDomain",
+      "to": "jankData",
+      "label": "내보낼 곳 포트",
+      "labelDy": -28
+    },
+    {
+      "id": "installId",
+      "from": "commonUtil",
+      "to": "datastore",
+      "label": "설치 ID 저장",
+      "variant": "dashed",
+      "labelDy": 57
     }
   ],
   "cards": [
@@ -556,9 +681,10 @@
       "dot": "violet",
       "title": "가로지르는 모듈",
       "items": [
-        "세 모듈 다 domain 은 안드로이드 의존이 없다 — 전부 포트로 둔다",
-        "플래그는 화면도 UseCase 도 읽는다. 값 타입은 키가 KSerializer 로 들고 있다",
-        "플래그 · 실험 배정은 받는 즉시 사용자 식별자와 함께 로그로 나간다"
+        "네 모듈 다 domain 은 안드로이드 의존이 없다 — 전부 포트로 둔다",
+        "TTI 는 쓸 수 있게 되기까지를, jank 는 쓰는 동안 매끄러운지를 잰다",
+        "플래그 · 실험 배정은 받는 즉시 사용자 식별자와 함께 로그로 나간다",
+        ":common:util 의 기기 정보를 함께 봐야 계측이 읽힌다 — 저사양 기기 · 좁은 대역폭은 코드 탓이 아니다"
       ]
     }
   ]

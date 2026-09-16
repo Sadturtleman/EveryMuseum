@@ -31,6 +31,17 @@ internal object DataStoreModule {
         createDataStore(context, ioDispatcher, name = "store_preferences"),
     )
 
+    /** 기기 정보 저장 파일. 지금은 :common:util 의 설치 ID 하나가 여기 산다. */
+    @Provides
+    @Singleton
+    @DevicePreferences
+    fun provideDeviceDataStorage(
+        @ApplicationContext context: Context,
+        @IoDispatcher ioDispatcher: CoroutineDispatcher,
+    ): DataStorage = PreferencesDataStorage(
+        createDataStore(context, ioDispatcher, name = "device_preferences"),
+    )
+
     /**
      * 파일 하나에 대한 DataStore 를 만든다.
      *

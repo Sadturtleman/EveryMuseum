@@ -16,6 +16,7 @@ import androidx.navigation3.ui.NavDisplay
 import com.sadturtleman.androidsampleproject.common.navigation.NavRoute
 import com.sadturtleman.androidsampleproject.common.navigation.NavSignal
 import com.sadturtleman.androidsampleproject.common.presentation.helper.LocalNavigationHelper
+import com.sadturtleman.androidsampleproject.jank.presentation.JankPage
 import com.sadturtleman.androidsampleproject.tti.presentation.TtiPage
 import com.sadturtleman.androidsampleproject.home.navigation.HomePage
 
@@ -68,6 +69,8 @@ fun AppNavHost(
                 }
                 // 화면 하나의 TTI 측정은 여기서 열린다.
                 // ViewModel 생성이 render 안에서 일어나므로 VIEW_CREATE 를 덮으려면 이 바깥이어야 한다.
+                // 프레임 통계도 같은 화면 이름으로 묶인다 — 두 지표를 겹쳐 볼 수 있어야 한다.
+                JankPage(pageName = route.path)
                 TtiPage(pageName = route.path) {
                     route.render(navKey.args)
                 }

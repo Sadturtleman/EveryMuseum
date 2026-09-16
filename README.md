@@ -5,8 +5,9 @@
 국립중앙박물관 [e뮤지엄 Open API](https://www.emuseum.go.kr) 의 소장품을 둘러보는 앱이고,
 멀티 모듈 · MVI · Navigation 3 · Hilt 로 구성돼 있습니다.
 
-화면 진입 시간(TTI) 계측, 비즈니스 이벤트 로깅, 환경별 피처 플래그 · AB 테스트가
-앱 전체를 가로지르는 모듈로 따로 있습니다.
+화면 진입 시간(TTI) 계측, 프레임 드랍(jank) 계측, 비즈니스 이벤트 로깅,
+환경별 피처 플래그 · AB 테스트가 앱 전체를 가로지르는 모듈로 따로 있습니다.
+그 수치를 해석하는 데 필요한 기기 정보는 `:common:util` 이 한곳에서 읽어 줍니다.
 
 ## 시스템 아키텍처
 
@@ -23,6 +24,7 @@ flowchart LR
     key["ServiceKeyInterceptor<br/>인증키를 요청마다 주입"]
     net[":common:network<br/>Retrofit · OkHttp · XML 변환"]
     ds[":common:datastore<br/>Preferences DataStore"]
+    util[":common:util<br/>DeviceInfoProvider"]
     api(["e뮤지엄 Open API<br/>apis.data.go.kr"])
 
     app -->|라우팅 · 화면 진입| fp
@@ -34,6 +36,7 @@ flowchart LR
     cp -.->|MVI 베이스 · 컴포넌트| fp
     key -.->|인증키 주입| net
     fdata -.->|보관함 id 저장| ds
+    util -.->|설치 ID 저장| ds
 
     subgraph TTI[":tti — 앱 전체를 가로지르는 계측"]
         direction LR
@@ -58,12 +61,23 @@ flowchart LR
         fl -->|값 출처 포트| fldata
     end
 
+    subgraph JANK[":jank — 프레임 드랍 계측"]
+        direction LR
+        jp[":jank:presentation<br/>JankPage · 스크롤 감시"]
+        jd[":jank:domain<br/>버킷 · 임계치 규칙"]
+        jdata[":jank:data<br/>Hilt 조립 · 내보낼 곳"]
+        jp -->|JankReporter| jd
+        jd -->|내보낼 곳 포트| jdata
+    end
+
     fp -->|구간 열기 · 닫기| tp
     fp -->|이벤트 기록| ld
     app -->|화면 진입 기록| ld
     fp -->|플래그 읽기| fl
     fd -->|플래그 읽기| fl
     fl -.->|배정 기록| ld
+    app -->|화면 이름 등록| jp
+    fp -->|스크롤 구간 알림| jp
 ```
 
 > 🔍 인터랙티브 버전: [`docs/architecture.html`](docs/architecture.html)
@@ -80,8 +94,10 @@ flowchart LR
 | `feature:data` | Android + Hilt | 그 계약의 구현. 응답을 도메인 모양으로 옮김 |
 | `:common:network` | 공용 | 통신 스택 하나. 엔드포인트는 각 `data` 모듈이 정함 |
 | `:tti:domain` | 순수 코틀린 | 무엇을 언제 재는가. 시각·저장은 포트로 위임 |
+| `:jank:domain` | 순수 코틀린 | 프레임을 어떻게 묶고 언제 내보내는가. 내보낼 곳은 포트로 위임 |
 | `:logging:domain` | 순수 코틀린 | 무엇을 남길 수 있는가. 전송은 포트로 위임 |
 | `:featureflag:domain` | 순수 코틀린 | 어떤 플래그·실험이 있는가. 값 출처는 포트로 위임 |
+| `:common:util` | Android + Hilt | 기기가 어떤 기기인가. 계약은 `DeviceInfoProvider` 하나 |
 
 ## 주요 경로 — 소장품 상세 조회
 
@@ -160,6 +176,51 @@ TTI: /search/result total= 647ms (VIEW_CREATE=  8ms | BACKEND= 635ms | VIEW_BIND
 ```bash
 adb logcat | grep "TTI:"
 ```
+
+## 프레임 드랍(jank) 계측
+
+`:tti` 가 "언제 쓸 수 있게 되는가" 를 잰다면 `:jank` 는 "쓰는 동안 매끄러운가" 를 잽니다.
+JankStats 가 프레임마다 부르는 콜백을 `JankReporter` 가 받아 통계로 묶습니다.
+
+세 가지를 따로 셉니다 — **화면 하나에서 쌓인 것**, **스크롤 한 구간에서 쌓인 것**,
+그리고 그냥 두면 놓칠 만큼 나쁜 **한 프레임**. 원인이 다르기 때문입니다.
+화면 전체 비율은 그 화면이 무거운지를 말하고 스크롤 구간은 목록이 무거운지를 말합니다.
+한 통에 담으면 스크롤하지 않고 머문 시간이 비율을 희석해 목록 문제가 보이지 않습니다.
+
+| 내보내는 계기 | 언제 |
+|---|---|
+| `PAGE_EXIT` | 화면을 떠났다 — 그 화면에서 쌓인 것을 넘긴다 |
+| `SCROLL_END` | 스크롤이 멈췄다 — 그 구간만 따로 본다 |
+| `THRESHOLD_EXCEEDED` | 누적 비율이 5% 를 넘었다(최소 120 프레임 모인 뒤) — 내보내고 버킷을 비운다 |
+| `FROZEN_FRAME` | 한 프레임이 700ms 이상 걸렸다 — 누적과 별개로 한 건씩 |
+| `BACKGROUND` | 앱이 뒤로 내려갔다 — 남은 것을 잃지 않으려고 비운다 |
+
+표본이 쌓이기 전에는 비율을 재지 않습니다. 화면이 처음 뜨는 몇 프레임은 늘 나쁘게 나오고,
+그것만으로 임계치를 넘기면 모든 화면이 매번 걸립니다.
+
+화면 이름은 라우팅 테이블에서 한 번 등록하고, 목록은 스크롤 상태를 그대로 넘깁니다.
+
+```kotlin
+JankPage(pageName = route.path)   // :app 의 라우팅 테이블 — TTI 의 TtiPage 와 같은 자리
+JankScrollWatcher(listState)      // 홈 · 검색 결과 · 보관함의 목록
+```
+
+집계는 전부 메인 스레드에서 돕니다. JankStats 의 콜백이 그 위에서 돌기 때문이고,
+그래서 잠금이 없습니다 — 잠그면 그 대기가 다시 프레임을 놓치게 만듭니다.
+
+출력 형식 (Logcat 태그는 `JANK`):
+
+```
+[SCROLL_END] page=/home frames=214 jank=17 frozen=0 ratio=7.94% avg=9ms max=112ms states={page=/home, scrolling=true}
+```
+
+```bash
+adb logcat -s JANK
+```
+
+디버그 빌드만 로그로 흘리고 릴리스는 아무 일도 하지 않습니다 — 사용자 기기에서 프레임마다 도는
+계측이라, 값을 받을 곳이 생기기 전까지는 비용만 남기 때문입니다.
+Firebase Performance 같은 수집기를 붙이면 `JankReport` 구현 하나만 채웁니다.
 
 ## 비즈니스 이벤트 로깅
 
@@ -290,6 +351,64 @@ BIZLOG: /app flags_resolved user=2b7f3c9a-4d51-4e08-9a6b-1c0f5e83d7a2 at=1789516
 - 실패한 건은 그대로 사라집니다. 쌓아 두는 곳이 없으므로 재시도는 전송기 구현의 몫입니다.
 
 
+## 기기 정보
+
+`:common:util` 은 기기가 어떤 기기인지를 한곳에서 읽어 줍니다. 계약은 `DeviceInfoProvider` 하나입니다.
+
+**왜 따로 두는가 — 계측 수치는 기기 사정과 함께 봐야 읽히기 때문입니다.**
+
+위의 세 계측(TTI · jank · 로깅)은 숫자만 남깁니다. 그 숫자가 왜 그렇게 나왔는지는 기기가 답합니다.
+
+- **성능이 나쁜 기기의 TTI 가 섞이면 통계가 깨집니다.** 저사양 기기 몇 대의 `BIG_PART_LOADING`
+  이 평균을 끌어올리면, 아무것도 고치지 않았는데 지표가 나빠지고 반대로 고쳐도 표가 나지 않습니다.
+  `isLowRamDevice` · `getCpuCoreCount` · `getMemoryInfo` 로 코호트를 갈라 놓아야 같은 기기끼리 비교됩니다.
+- **대역폭이 좁을 때 느린 이미지 로딩을 우리 코드 문제로 읽을 여지가 있습니다.**
+  `BIG_PART_LOADING` 이 5초면 사진을 늦게 그린 것처럼 보이지만, `getNetworkType` 이 `CELLULAR` 이고
+  `getDownstreamBandwidthKbps` 가 바닥이면 그것은 회선이 한 일입니다. 이 값이 없으면
+  있지도 않은 원인을 코드에서 찾게 됩니다.
+- 같은 이유로 절전 모드(`isPowerSaveMode`)와 발열(`getThermalStatus`)도 함께 봅니다 —
+  둘 다 OS 가 클럭을 내리는 구간이라, 그 표본을 평균에 섞으면 개선도 퇴행도 보이지 않습니다.
+
+**항목 하나에 함수 하나입니다.** 덩어리로 내보내지 않는 이유는 부르는 쪽이 필요한 것만
+가져가게 하려는 것입니다 — 크래시 리포트는 지문과 ABI 만, 프레임 통계는 주사율과 발열만 씁니다.
+
+| 주기 | 항목 | 어떻게 |
+|---|---|---|
+| 세션 1회 | 제조사 · 모델 · OS · ABI · 지문 · 앱 버전 · 설치 경로 · 저사양 여부 · 코어 수 · 저장공간 · 통신사 · 식별자 | 구현이 항목마다 `by lazy` 로 한 번만 읽는다 |
+| 변경 시 | 창 크기 · 밀도 · 주사율 · 다크모드 · 로케일 · 글꼴 배율 · 방향 | 부를 때마다 다시 읽는다 — 캐시하면 거짓이 된다 |
+| 이벤트마다 | 메모리 · 배터리 · 충전 · 절전 · 발열 · 연결 타입 · 종량제 · 대역폭 | 순간의 값이라 역시 캐시하지 않는다 |
+
+```kotlin
+class SomeReporter @Inject constructor(
+    private val deviceInfo: DeviceInfoProvider,
+) {
+    fun onSlowScreen(pageName: String) {
+        if (deviceInfo.isLowRamDevice() || deviceInfo.isPowerSaveMode()) return  // 다른 통에 센다
+        ...
+    }
+}
+```
+
+**주사율은 세션 1회가 아닙니다.** 가변 주사율 기기는 120 으로 시작해 배터리를 아끼려 60 으로
+내려갑니다. 처음 값을 들고 있으면 그 뒤의 프레임을 두 배 너그러운 기준으로 재게 되므로,
+`getFrameBudgetMillis()` 는 부를 때마다 지금 주사율에서 다시 계산합니다.
+
+**식별자는 우리가 만든 UUID 가 기본입니다.** `ANDROID_ID` 는 서명 키 + 유저 단위로 나뉘고
+초기화·재설치에서 달라질 수 있어 단독으로는 믿을 수 없습니다. 설치 ID 는 첫 실행에 만들어
+`:common:datastore` 의 `device_preferences` 에 두고, 앱을 지우면 함께 사라집니다.
+
+**권한은 `ACCESS_NETWORK_STATE` 하나**입니다(모듈 매니페스트가 선언합니다).
+통신사 이름도 권한이 필요 없는 `networkOperatorName` 만 읽습니다 —
+가입자 식별에 닿는 값은 `READ_PHONE_STATE` 를 부르고, 이 모듈은 그 권한을 요구하지 않습니다.
+
+빌드 변형(`BuildConfig.BUILD_TYPE` · `FLAVOR`)만은 이 모듈이 스스로 읽지 못합니다.
+`BuildConfig` 는 그것을 생성한 모듈의 것이라 플레이버를 가진 `:app` 이 DI 로 꽂아 줍니다
+(`DeviceInfoAppModule`). `:featureflag` 의 환경(`APP_ENV`)이 같은 이유로 같은 길을 지납니다.
+
+> 지금은 읽는 쪽만 있습니다. 계측 · 로깅 기록에 이 값을 실제로 붙이는 배선은 아직입니다 —
+> 무엇을 어느 이벤트에 붙일지(세션 1회는 세션 시작에 한 번, 퍼포먼스 이벤트에만 순간 값)를
+> 정한 뒤에 `:logging` · `:tti` · `:jank` 쪽에서 가져다 씁니다.
+
 ## 빌드
 
 인증키와 주소는 소스에 두지 않고 `local.properties` 에서만 읽습니다
@@ -308,8 +427,10 @@ EMUSEUM_SERVICE_KEY=발급받은_인증키
 ./gradlew :app:assembleProdRelease
 
 ./gradlew :tti:domain:test
+./gradlew :jank:domain:test
 ./gradlew :logging:domain:test
 ./gradlew :featureflag:domain:test
+./gradlew :common:util:testDebugUnitTest
 ```
 
 ---
