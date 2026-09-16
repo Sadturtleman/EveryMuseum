@@ -35,6 +35,11 @@ include(":common:datastore")
 include(":common:di")
 include(":common:navigation")
 
+// 기기 · OS · 화면 · 리소스 · 네트워크 정보 수집. 계측 모듈들이 함께 쓴다.
+// 안드로이드 모듈이다 — Build · PackageManager · ConnectivityManager 를 읽는 것이 일이라
+// 순수 코틀린으로 둘 수 없다. 대신 DeviceInfoProvider 계약 하나로만 밖에 보인다.
+include(":common:util")
+
 // 화면 진입 시간(TTI) 계측. 어느 feature 에도 속하지 않고 앱 전체를 가로지른다.
 // domain 은 순수 코틀린이다 — 무엇을 언제 재는지는 플랫폼과 무관해야 하므로
 // 시각(TtiClock) 과 저장(TtiRecordStore) 을 포트로 두고 data 가 안드로이드 구현을 꽂는다.
